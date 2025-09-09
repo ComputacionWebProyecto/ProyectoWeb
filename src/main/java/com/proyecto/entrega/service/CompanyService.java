@@ -1,0 +1,49 @@
+package com.proyecto.entrega.service;
+
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.proyecto.entrega.dto.CompanyDTO;
+import com.proyecto.entrega.entity.Company;
+import com.proyecto.entrega.repository.CompanyRepository;
+
+@Service
+public class CompanyService {
+
+    @Autowired
+    private ModelMapper modelMapper;
+    @Autowired
+    private CompanyRepository companyRepository;
+
+    public CompanyDTO createCompany(CompanyDTO companyDTO) {
+        Company company = modelMapper.map(companyDTO, Company.class);
+        company = companyRepository.save(company);
+        return modelMapper.map(company, CompanyDTO.class);
+    }
+
+    public CompanyDTO updateCompany(CompanyDTO companyDTO) {
+        Company company = modelMapper.map(companyDTO, Company.class);
+        company = companyRepository.save(company);
+        return modelMapper.map(company, CompanyDTO.class);
+    }
+
+    public CompanyDTO findCompany(Long id) {
+        Company company = companyRepository.findById(id).orElse(null);
+        return modelMapper.map(company, CompanyDTO.class);
+    }
+
+    public void deleteCompany(Long id) {
+        companyRepository.deleteById(id);
+    }
+
+    public List<CompanyDTO> findCompany() {
+        List<Company> companies = companyRepository.findAll();
+        return companies.stream()
+                .map(company -> modelMapper.map(company, CompanyDTO.class))
+                .toList();
+    }
+
+}
