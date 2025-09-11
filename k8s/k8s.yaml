@@ -19,8 +19,8 @@ spec:
       labels:
         app: backend
     spec:
-    imagePullSecrets:
-    - name: ghcr-secret   # <- Nombre del secret creado con tus credenciales
+      imagePullSecrets:
+      - name: ghcr-secret   # <- Nombre del secret creado con tus credenciales
       containers:
         - name: backend
           image: ghcr.io/computacionwebproyecto/entrega:latest  # <- IMAGEN PUBLICADA EN GHCR
