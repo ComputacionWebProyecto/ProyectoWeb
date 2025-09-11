@@ -2,6 +2,8 @@ package com.proyecto.entrega.entity;
 
 
 
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -37,7 +39,7 @@ public class Company{
 
     @OneToMany
     @JoinColumn(name = "process_id")
-    private Process process;
+    private List<Process> process;
 
     @OneToMany
     @JoinColumn(name = "user_id")
