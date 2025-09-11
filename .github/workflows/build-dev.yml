@@ -42,7 +42,7 @@ jobs:
     - name: Print pushed image URL
       run: "echo 'Imagen publicada: ghcr.io/${OWNER_LC}/entrega:latest'"
 
-deploy-onpremise:
+  deploy-onpremise:
     name: Deploy on MicroK8s On-Premise
     runs-on: dev
     needs: build-and-publish
