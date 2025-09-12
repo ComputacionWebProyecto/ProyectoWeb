@@ -1,5 +1,7 @@
 package com.proyecto.entrega.entity;
 
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -38,11 +40,11 @@ public class Process{
     private Company company;
 
     @OneToMany(mappedBy = "process")
-    private Gateway gateways;
+    private List<Gateway> gateways;
 
     // Relación 1:N con roles
-    @OneToMany(mappedBy = "company")
-    private Role roles;
+    @OneToMany(mappedBy = "process")
+    private List<Role> roles;
 }
 
 

@@ -43,7 +43,7 @@ public class Company{
 
     @OneToMany
     @JoinColumn(name = "user_id")
-    private User user;
+    private List<User> user;
 
 }
 

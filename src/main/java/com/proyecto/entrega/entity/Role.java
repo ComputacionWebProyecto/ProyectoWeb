@@ -1,5 +1,7 @@
 package com.proyecto.entrega.entity;
 
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -38,5 +40,5 @@ public class Role {
 
     // Relación 1:N con usuarios (varios usuarios pueden tener el mismo rol)
     @OneToMany(mappedBy = "role")
-    private User users;
+    private List<User> users;
 }
