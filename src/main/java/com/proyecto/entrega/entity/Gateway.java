@@ -22,7 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Where(clause = "status = 'active'")
-@SQLDelete(sql = "UPDATE activity SET status = 'inactive' WHERE id = ?")
+@SQLDelete(sql = "UPDATE gateway SET status = 'inactive' WHERE id = ?")
 
 public class Gateway {
     @Id

@@ -24,7 +24,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Where(clause = "status = 'active'")
-@SQLDelete(sql = "UPDATE activity SET status = 'inactive' WHERE id = ?")
+@SQLDelete(sql = "UPDATE role SET status = 'inactive' WHERE id = ?")
 
 public class Role {
     @Id
@@ -41,4 +41,8 @@ public class Role {
     // Relación 1:N con usuarios (varios usuarios pueden tener el mismo rol)
     @OneToMany(mappedBy = "role")
     private List<User> users;
+
+    @ManyToOne
+    @JoinColumn(name = "process_id")
+    private Process process;
 }

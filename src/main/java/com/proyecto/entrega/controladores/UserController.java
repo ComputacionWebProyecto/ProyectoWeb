@@ -17,7 +17,7 @@ import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.service.UserService;
 
 @RestController
-@RequestMapping("/api/company")
+@RequestMapping("/api/user")
 public class UserController {
 
     @Autowired

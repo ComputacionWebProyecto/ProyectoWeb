@@ -25,7 +25,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Where(clause = "status = 'active'")
-@SQLDelete(sql = "UPDATE edge SET status = 'inactive' WHERE id = ?")
+@SQLDelete(sql = "UPDATE company SET status = 'inactive' WHERE id = ?")
 
 public class Company{
     
@@ -37,12 +37,10 @@ public class Company{
     private String correoContacto;
     
 
-    @OneToMany
-    @JoinColumn(name = "process_id")
-    private List<Process> process;
+    @OneToMany(mappedBy = "company")
+    private List<Process> processes;
 
-    @OneToMany
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "company")
     private List<User> user;
 
 }
