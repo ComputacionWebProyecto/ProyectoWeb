@@ -24,7 +24,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Where(clause = "status = 'active'")
-@SQLDelete(sql = "UPDATE user SET status = 'inactive' WHERE id = ?")
+@SQLDelete(sql = "UPDATE usuarios SET status = 'inactive' WHERE id = ?")
 
 @Table(name = "usuarios")
 public class User{
