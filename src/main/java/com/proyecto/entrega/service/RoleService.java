@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.entity.Role;
 import com.proyecto.entrega.repository.RoleRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class RoleService {
     
@@ -32,7 +34,8 @@ public class RoleService {
         
 
     public RoleDTO findRole(Long id) {
-        Role role = roleRepository.findById(id).orElse(null);
+        Role role = roleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Role " + id + " not found"));
         return modelMapper.map(role, RoleDTO.class);
     }
 

@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.ActivityDTO;
 import com.proyecto.entrega.entity.Activity;
 import com.proyecto.entrega.repository.ActivityRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class ActivityService {
 
@@ -31,7 +33,8 @@ public class ActivityService {
     }
 
     public ActivityDTO findActivity(Long id) {
-        Activity activity = activityRepository.findById(id).orElse(null);
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
         return modelMapper.map(activity, ActivityDTO.class);
     }
 

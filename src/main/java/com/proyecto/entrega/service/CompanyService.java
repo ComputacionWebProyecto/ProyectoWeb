@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.CompanyDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.repository.CompanyRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class CompanyService {
 
@@ -31,7 +33,8 @@ public class CompanyService {
     }
 
     public CompanyDTO findCompany(Long id) {
-        Company company = companyRepository.findById(id).orElse(null);
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Company " + id + " not found"));
         return modelMapper.map(company, CompanyDTO.class);
     }
 

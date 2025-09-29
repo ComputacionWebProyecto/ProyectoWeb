@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.EdgeDTO;
 import com.proyecto.entrega.entity.Edge;
 import com.proyecto.entrega.repository.EdgeRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class EdgeService {
 
@@ -31,7 +33,8 @@ public class EdgeService {
     }
 
     public EdgeDTO findEdge(Long id) {
-        Edge edge = edgeRepository.findById(id).orElse(null);
+        Edge edge = edgeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Edge " + id + " not found"));
         return modelMapper.map(edge, EdgeDTO.class);
     }   
 

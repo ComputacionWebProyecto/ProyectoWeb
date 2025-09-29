@@ -11,6 +11,8 @@ import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.entity.User;
 import com.proyecto.entrega.repository.UserRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class UserService {
     @Autowired
@@ -31,7 +33,8 @@ public class UserService {
     }
 
     public UserDTO findUser(Long id) {
-        User user = userRepository.findById(id).orElse(null);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
         return modelMapper.map(user, UserDTO.class);
     }
 

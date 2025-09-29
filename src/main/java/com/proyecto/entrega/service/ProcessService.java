@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.repository.ProcessRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class ProcessService {
     @Autowired
@@ -29,8 +31,9 @@ public class ProcessService {
         return modelMapper.map(process, ProcessDTO.class);
     }
 
-    public ProcessDTO findProcess(Long id) {
-        Process process = processRepository.findById(id).orElse(null);
+     public ProcessDTO findProcess(Long id) {
+        Process process = processRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
         return modelMapper.map(process, ProcessDTO.class);
     }
 

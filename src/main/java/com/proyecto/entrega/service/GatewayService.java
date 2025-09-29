@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.GatewayDTO;
 import com.proyecto.entrega.entity.Gateway;
 import com.proyecto.entrega.repository.GatewayRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class GatewayService {
 
@@ -31,7 +33,8 @@ public class GatewayService {
     }
 
     public GatewayDTO findGateway(Long id) {
-        Gateway gateway = gatewayRepository.findById(id).orElse(null);
+        Gateway gateway = gatewayRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Gateway " + id + " not found"));
         return modelMapper.map(gateway, GatewayDTO.class);
     }
 
