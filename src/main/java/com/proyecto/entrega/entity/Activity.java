@@ -1,6 +1,5 @@
 package com.proyecto.entrega.entity;
 
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -14,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.persistence.*;
 
 @SuppressWarnings("deprecation")
 @Entity
@@ -24,19 +24,36 @@ import lombok.Setter;
 @Where(clause = "status = 'active'")
 @SQLDelete(sql = "UPDATE activity SET status = 'inactive' WHERE id = ?")
 
+@Table(name = "activity")
 public class Activity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column
     private Double x;
+
+    @Column
     private Double y;
-    private String description;
+
+    @Column
     private Double width;
+
+    @Column
     private Double height;
+
+    @Column
+    private String description;
+
+
+    @Column(nullable = false, length = 16)
     private String status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "process_id")
     private Process process;
 
