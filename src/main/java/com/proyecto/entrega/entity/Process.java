@@ -16,7 +16,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import jakarta.persistence.*;
 
 @SuppressWarnings("deprecation")
 @Entity
@@ -27,27 +26,20 @@ import jakarta.persistence.*;
 @Where(clause = "status = 'active'")
 @SQLDelete(sql = "UPDATE process SET status = 'inactive' WHERE id = ?")
 
-@Table(name = "process") // se fija el nombre real de la tabla para evitar conflictos con palabras reservadas
 public class Process{
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
-    private String name;
-
-    @Column
+    private String name; 
     private String description;
-
-    @Column(nullable = false, length = 16)
     private String status;
 
-    @ManyToOne(fetch = FetchType.LAZY)// N:1 -> muchos Process pertenecen a una Empresa
-    @JoinColumn(name = "company_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "company_id")
     private Company company;
 
-    @OneToMany(mappedBy = "process", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "process")
     private List<Gateway> gateways;
 
     // Relación 1:N con roles

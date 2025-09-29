@@ -14,7 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import jakarta.persistence.*;
 
 @SuppressWarnings("deprecation")
 @Entity
@@ -25,21 +24,14 @@ import jakarta.persistence.*;
 @Where(clause = "status = 'active'")
 @SQLDelete(sql = "UPDATE gateway SET status = 'inactive' WHERE id = ?")
 
-@Table(name = "gateway")
 public class Gateway {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, length = 16)
     private String status; //aceptado o no aceptado
-
-    @Enumerated(EnumType.STRING)// Guarda enum como texto
-    @Column(nullable = false)
     private String type; //exclusivos,	paralelos	o	inclusivos
 
-    @ManyToOne(fetch = FetchType.LAZY)// Muchos gateways → 1 proceso (carga diferida)
-    @JoinColumn(name = "process_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "process_id")
     private Process process;
 }
