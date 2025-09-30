@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.UserDTO;
+import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.service.UserService;
 
 @RestController
@@ -39,13 +40,13 @@ public class UserController {
     }
 
     @GetMapping(value = "/{id}")
-    public UserDTO getUser(@PathVariable Long id) {
+    public UserSafeDTO getUser(@PathVariable Long id) {
         return userService.findUser(id);
     }
 
     @GetMapping()
-    public List<UserDTO> getUser() {
-        return userService.findUser();
+    public List<UserSafeDTO> getUser() {
+        return userService.findAllUsers();
     }
 
 }

@@ -14,5 +14,6 @@ public class RoleDTO {
     private Long id;
     private String nombre;
     private String descripcion;
-    
+    private Long companyId;
+    private Long processId;
 }

@@ -9,12 +9,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GatewayDTO {
+public class UserSafeDTO {
 
     private Long id;
-    private String type;
-    private Long processId;
-
+    private String nombre;
+    private String correo;
+    private Long companyId;
+    private Long roleId;
 }
-
- 

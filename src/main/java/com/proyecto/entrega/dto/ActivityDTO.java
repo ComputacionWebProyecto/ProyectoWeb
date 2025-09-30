@@ -18,6 +18,6 @@ public class ActivityDTO {
     private String description;
     private Double width;
     private Double height;
-    private String status;
+    private Long processId;
     
 }

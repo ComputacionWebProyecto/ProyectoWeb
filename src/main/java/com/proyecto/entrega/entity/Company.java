@@ -35,7 +35,7 @@ public class Company{
     private Long NIT;
     private String name;
     private String correoContacto;
-    private String status;
+    private String status = "active";
     
 
     @OneToMany(mappedBy = "company")

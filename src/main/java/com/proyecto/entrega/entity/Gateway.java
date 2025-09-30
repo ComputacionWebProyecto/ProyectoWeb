@@ -28,7 +28,7 @@ public class Gateway {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String status; //aceptado o no aceptado
+    private String status = "active"; //aceptado o no aceptado
     private String type; //exclusivos,	paralelos	o	inclusivos
 
     @ManyToOne

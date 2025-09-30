@@ -16,8 +16,8 @@ public class CompanyDTO {
     private Long id;
 
     @JsonProperty("NIT")
-    private Long NIT;
+    private Long nit;
     
-    private String nombre;
+    private String name;
     private String correoContacto;
 }

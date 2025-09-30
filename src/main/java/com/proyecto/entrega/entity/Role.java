@@ -32,7 +32,7 @@ public class Role {
     private Long id;
     private String nombre;
     private String descripcion;
-    private String status;
+    private String status = "active";
 
     // Relación N:1 con Company
     @ManyToOne

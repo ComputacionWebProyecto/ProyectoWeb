@@ -39,7 +39,11 @@ public class CompanyService {
     }
 
     public void deleteCompany(Long id) {
-        companyRepository.deleteById(id);
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Company " + id + " not found"));
+        company.setStatus("inactive");
+        companyRepository.save(company);
+
     }
 
     public List<CompanyDTO> findCompany() {

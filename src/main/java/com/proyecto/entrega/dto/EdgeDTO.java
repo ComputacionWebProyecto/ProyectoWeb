@@ -13,5 +13,7 @@ import lombok.Setter;
 public class EdgeDTO {
     private Long id;
     private String description;
-    private String status;
+    private Long processId;
+    private Long activitySourceId;
+    private Long activityDestinyId;
 }

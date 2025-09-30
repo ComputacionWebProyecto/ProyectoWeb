@@ -34,7 +34,7 @@ public class Activity {
     private String description;
     private Double width;
     private Double height;
-    private String status;
+    private String status = "active";
 
     @ManyToOne
     @JoinColumn(name = "process_id")
