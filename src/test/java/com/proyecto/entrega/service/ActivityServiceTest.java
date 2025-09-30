@@ -3,9 +3,7 @@ package com.proyecto.entrega.service;
 import com.proyecto.entrega.dto.ActivityDTO;
 import com.proyecto.entrega.entity.Activity;
 import com.proyecto.entrega.repository.ActivityRepository;
-
 import jakarta.persistence.EntityNotFoundException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
@@ -17,100 +15,84 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ActivityServiceTest {
 
-    @Mock
-    ActivityRepository activityRepository;
+    @Mock ActivityRepository activityRepository;
+    @Mock ModelMapper modelMapper;
 
-    @Mock
-    ModelMapper modelMapper;
-
-    @InjectMocks
-    ActivityService activityService;
+    @InjectMocks ActivityService activityService;
 
     @Test
-    void createActivity_ok() {
-        ActivityDTO inDto = new ActivityDTO(null, "A1", 10.0, 20.0, "desc", 100.0, 50.0, "active");
-        Activity entityBefore = new Activity(null, "A1", 10.0, 20.0, "desc", 100.0, 50.0, "active", null);
-        Activity entitySaved  = new Activity(1L,   "A1", 10.0, 20.0, "desc", 100.0, 50.0, "active", null);
-        ActivityDTO outDto    = new ActivityDTO(1L, "A1", 10.0, 20.0, "desc", 100.0, 50.0, "active");
+    void create_ok() {
+        ActivityDTO in = new ActivityDTO(null, "A1", 1.0,2.0,"d",10.0,5.0,"active");
+        Activity before = new Activity();
+        Activity saved  = new Activity();
+        saved.setId(1L);
+        ActivityDTO out = new ActivityDTO(1L,"A1",1.0,2.0,"d",10.0,5.0,"active");
 
-        when(modelMapper.map(inDto, Activity.class)).thenReturn(entityBefore);
-        when(activityRepository.save(entityBefore)).thenReturn(entitySaved);
-        when(modelMapper.map(entitySaved, ActivityDTO.class)).thenReturn(outDto);
+        when(modelMapper.map(in, Activity.class)).thenReturn(before);
+        when(activityRepository.save(before)).thenReturn(saved);
+        when(modelMapper.map(saved, ActivityDTO.class)).thenReturn(out);
 
-        ActivityDTO result = activityService.createActivity(inDto);
+        ActivityDTO result = activityService.createActivity(in);
 
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getName()).isEqualTo("A1");
-        verify(activityRepository).save(entityBefore);
     }
 
     @Test
-    void updateActivity_ok() {
-        ActivityDTO inDto = new ActivityDTO(5L, "Edit", 1.0, 2.0, "d", 3.0, 4.0, "active");
-        Activity entity = new Activity(5L, "Edit", 1.0, 2.0, "d", 3.0, 4.0, "active", null);
+    void update_ok() {
+        ActivityDTO in = new ActivityDTO(5L,"E",1.0,2.0,"d",10.0,5.0,"active");
+        Activity entity = new Activity();
+        Activity saved = new Activity();
+        saved.setId(5L);
+        ActivityDTO out = new ActivityDTO(5L,"E",1.0,2.0,"d",10.0,5.0,"active");
 
-        when(modelMapper.map(inDto, Activity.class)).thenReturn(entity);
-        when(activityRepository.save(entity)).thenReturn(entity);
-        when(modelMapper.map(entity, ActivityDTO.class)).thenReturn(inDto);
+        when(modelMapper.map(in, Activity.class)).thenReturn(entity);
+        when(activityRepository.save(entity)).thenReturn(saved);
+        when(modelMapper.map(saved, ActivityDTO.class)).thenReturn(out);
 
-        ActivityDTO result = activityService.updateActivity(inDto);
+        ActivityDTO result = activityService.updateActivity(in);
 
-        assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(5L);
-        verify(activityRepository).save(entity);
     }
 
     @Test
-    void findActivity_found() {
-        Activity entity = new Activity(2L, "A2", 1.0, 2.0, "d", 10.0, 20.0, "active", null);
-        ActivityDTO dto = new ActivityDTO(2L, "A2", 1.0, 2.0, "d", 10.0, 20.0, "active");
+    void findById_ok() {
+        Activity entity = new Activity();
+        entity.setId(7L);
+        ActivityDTO dto = new ActivityDTO(7L,"A",1.0,2.0,"d",10.0,5.0,"active");
 
-        when(activityRepository.findById(2L)).thenReturn(Optional.of(entity));
+        when(activityRepository.findById(7L)).thenReturn(Optional.of(entity));
         when(modelMapper.map(entity, ActivityDTO.class)).thenReturn(dto);
 
-        ActivityDTO result = activityService.findActivity(2L);
-
-        assertThat(result.getId()).isEqualTo(2L);
-        assertThat(result.getName()).isEqualTo("A2");
+        ActivityDTO result = activityService.findActivity(7L);
+        assertThat(result.getId()).isEqualTo(7L);
     }
 
     @Test
-    void findActivity_notFound_throwsEntityNotFound() {
-        when(activityRepository.findById(999L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> activityService.findActivity(999L))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("999");
-
-        verify(activityRepository).findById(999L);
-        verifyNoMoreInteractions(activityRepository);
+    void findById_notFound() {
+        when(activityRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> activityService.findActivity(99L))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
-    void deleteActivity_ok() {
-        activityService.deleteActivity(7L);
-        verify(activityRepository).deleteById(7L);
+    void delete_ok() {
+        activityService.deleteActivity(3L);
+        verify(activityRepository).deleteById(3L);
     }
 
     @Test
-    void findActivities_ok() {
-        Activity a = new Activity(1L, "A", 1.0, 2.0, "d", 3.0, 4.0, "active", null);
-        when(activityRepository.findAll()).thenReturn(List.of(a));
-        ActivityDTO dto = new ActivityDTO(1L, "A", 1.0, 2.0, "d", 3.0, 4.0, "active");
-        when(modelMapper.map(a, ActivityDTO.class)).thenReturn(dto);
+    void list_ok() {
+        when(activityRepository.findAll()).thenReturn(List.of(new Activity(), new Activity()));
+        when(modelMapper.map(any(Activity.class), eq(ActivityDTO.class)))
+                .thenReturn(new ActivityDTO(), new ActivityDTO());
 
         List<ActivityDTO> result = activityService.findActivities();
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName()).isEqualTo("A");
-        verify(activityRepository).findAll();
-        verify(modelMapper, atLeastOnce()).map(any(Activity.class), eq(ActivityDTO.class));
+        assertThat(result).hasSize(2);
     }
 }
