@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,13 +36,13 @@ class CompanyServiceTest {
         CompanyDTO inDto = new CompanyDTO(null, 900123456L, "Acme", "contacto@acme.com");
         Company entityBefore = new Company();
         entityBefore.setId(null);
-        entityBefore.setNIT(900123456L);
+        entityBefore.setNit(900123456L);
         entityBefore.setName("Acme");
         entityBefore.setCorreoContacto("contacto@acme.com");
 
         Company entitySaved = new Company();
         entitySaved.setId(1L);
-        entitySaved.setNIT(900123456L);
+        entitySaved.setNit(900123456L);
         entitySaved.setName("Acme");
         entitySaved.setCorreoContacto("contacto@acme.com");
 
@@ -54,8 +55,8 @@ class CompanyServiceTest {
         CompanyDTO result = companyService.createCompany(inDto);
 
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getNIT()).isEqualTo(900123456L);
-        assertThat(result.getNombre()).isEqualTo("Acme");
+        assertThat(result.getNit()).isEqualTo(900123456L);
+        assertThat(result.getName()).isEqualTo("Acme");
         verify(companyRepository).save(entityBefore);
     }
 
@@ -65,7 +66,7 @@ class CompanyServiceTest {
 
         Company entity = new Company();
         entity.setId(5L);
-        entity.setNIT(800111222L);
+        entity.setNit(800111222L);
         entity.setName("Editada");
         entity.setCorreoContacto("edit@co.com");
 
@@ -77,7 +78,7 @@ class CompanyServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(5L);
-        assertThat(result.getNombre()).isEqualTo("Editada");
+        assertThat(result.getName()).isEqualTo("Editada");
         verify(companyRepository).save(entity);
     }
 
@@ -85,7 +86,7 @@ class CompanyServiceTest {
     void findCompany_found() {
         Company entity = new Company();
         entity.setId(2L);
-        entity.setNIT(777L);
+        entity.setNit(777L);
         entity.setName("Comp2");
         entity.setCorreoContacto("c2@co.com");
 
@@ -97,7 +98,7 @@ class CompanyServiceTest {
         CompanyDTO result = companyService.findCompany(2L);
 
         assertThat(result.getId()).isEqualTo(2L);
-        assertThat(result.getNombre()).isEqualTo("Comp2");
+        assertThat(result.getName()).isEqualTo("Comp2");
     }
 
     @Test
@@ -114,14 +115,20 @@ class CompanyServiceTest {
 
     @Test
     void deleteCompany_ok() {
+        Company entity = new Company(7L, 111L, "Empresa Delete", "correo@test.com", "active", null, null);
+
+        when(companyRepository.findById(7L)).thenReturn(Optional.of(entity));
+
         companyService.deleteCompany(7L);
-        verify(companyRepository).deleteById(7L);
+
+        assertThat(entity.getStatus()).isEqualTo("inactive");
+        verify(companyRepository).save(entity);
     }
 
     @Test
     void findCompany_list_ok() {
         Company a = new Company();
-        a.setId(1L); a.setNIT(1L); a.setName("A"); a.setCorreoContacto("a@co.com");
+        a.setId(1L); a.setNit(1L); a.setName("A"); a.setCorreoContacto("a@co.com");
 
         when(companyRepository.findAll()).thenReturn(List.of(a));
 
@@ -131,7 +138,7 @@ class CompanyServiceTest {
         List<CompanyDTO> result = companyService.findCompany();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getNombre()).isEqualTo("A");
+        assertThat(result.get(0).getName()).isEqualTo("A");
         verify(companyRepository).findAll();
         verify(modelMapper, atLeastOnce()).map(any(Company.class), eq(CompanyDTO.class));
     }

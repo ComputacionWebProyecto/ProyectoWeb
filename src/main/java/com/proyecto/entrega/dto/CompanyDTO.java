@@ -14,10 +14,8 @@ import lombok.Setter;
 
 public class CompanyDTO {
     private Long id;
-
     @JsonProperty("NIT")
     private Long nit;
-    
     private String name;
     private String correoContacto;
 }

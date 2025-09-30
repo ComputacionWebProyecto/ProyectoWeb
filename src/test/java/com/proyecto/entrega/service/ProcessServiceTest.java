@@ -32,10 +32,10 @@ class ProcessServiceTest {
 
     @Test
     void createProcess_ok() {
-        ProcessDTO inDto = new ProcessDTO(null, "Proc A", "desc A", "active");
+        ProcessDTO inDto = new ProcessDTO(null, "Proc A", "desc A", 5L);
         Process entityBefore = new Process(null, "Proc A", "desc A", "active", null, null, null);
         Process entitySaved  = new Process(1L,   "Proc A", "desc A", "active", null, null, null);
-        ProcessDTO outDto    = new ProcessDTO(1L, "Proc A", "desc A", "active");
+        ProcessDTO outDto    = new ProcessDTO(1L, "Proc A", "desc A", 5L);
 
         when(modelMapper.map(inDto, Process.class)).thenReturn(entityBefore);
         when(processRepository.save(entityBefore)).thenReturn(entitySaved);
@@ -45,30 +45,32 @@ class ProcessServiceTest {
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getName()).isEqualTo("Proc A");
+        assertThat(result.getCompanyId()).isEqualTo(5L);
         verify(processRepository).save(entityBefore);
     }
 
     @Test
     void updateProcess_ok() {
-        ProcessDTO inDto = new ProcessDTO(10L, "Proc Edit", "d", "inactive");
-        Process entity = new Process(10L, "Proc Edit", "d", "inactive", null, null, null);
+        ProcessDTO inDto = new ProcessDTO(10L, "Proc Edit", "d", 7L);
+        Process entity = new Process(10L, "Proc Edit", "d", "active", null, null, null);
+        ProcessDTO outDto = new ProcessDTO(10L, "Proc Edit", "d", 7L);
 
         when(modelMapper.map(inDto, Process.class)).thenReturn(entity);
         when(processRepository.save(entity)).thenReturn(entity);
-        when(modelMapper.map(entity, ProcessDTO.class)).thenReturn(inDto);
+        when(modelMapper.map(entity, ProcessDTO.class)).thenReturn(outDto);
 
         ProcessDTO result = processService.updateProcess(inDto);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(10L);
-        assertThat(result.getStatus()).isEqualTo("inactive");
+        assertThat(result.getCompanyId()).isEqualTo(7L);
         verify(processRepository).save(entity);
     }
 
     @Test
     void findProcess_found() {
         Process entity = new Process(2L, "Proc B", "desc B", "active", null, null, null);
-        ProcessDTO dto = new ProcessDTO(2L, "Proc B", "desc B", "active");
+        ProcessDTO dto = new ProcessDTO(2L, "Proc B", "desc B", 9L);
 
         when(processRepository.findById(2L)).thenReturn(Optional.of(entity));
         when(modelMapper.map(entity, ProcessDTO.class)).thenReturn(dto);
@@ -77,6 +79,7 @@ class ProcessServiceTest {
 
         assertThat(result.getId()).isEqualTo(2L);
         assertThat(result.getName()).isEqualTo("Proc B");
+        assertThat(result.getCompanyId()).isEqualTo(9L);
     }
 
     @Test
@@ -102,13 +105,14 @@ class ProcessServiceTest {
         Process a = new Process(1L, "Proc X", "dx", "active", null, null, null);
         when(processRepository.findAll()).thenReturn(List.of(a));
 
-        ProcessDTO dto = new ProcessDTO(1L, "Proc X", "dx", "active");
+        ProcessDTO dto = new ProcessDTO(1L, "Proc X", "dx", 3L);
         when(modelMapper.map(a, ProcessDTO.class)).thenReturn(dto);
 
         List<ProcessDTO> result = processService.findProcesses();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getName()).isEqualTo("Proc X");
+        assertThat(result.get(0).getCompanyId()).isEqualTo(3L);
         verify(processRepository).findAll();
         verify(modelMapper, atLeastOnce()).map(any(Process.class), eq(ProcessDTO.class));
     }

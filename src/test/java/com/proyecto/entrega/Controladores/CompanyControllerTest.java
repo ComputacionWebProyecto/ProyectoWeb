@@ -45,8 +45,8 @@ class CompanyControllerTest {
     void getCompany_byId_returnsOkWithBody() throws Exception {
         CompanyDTO dto = new CompanyDTO();
         dto.setId(1L);
-        dto.setNIT(900123456L);
-        dto.setNombre("Acme Inc.");
+        dto.setNit(900123456L);
+        dto.setName("Acme Inc.");
         dto.setCorreoContacto("contacto@acme.com");
 
         Mockito.when(companyService.findCompany(1L)).thenReturn(dto);
@@ -81,8 +81,8 @@ class CompanyControllerTest {
     @Test
     void createCompany_returnsOk_andCallsService() throws Exception {
         CompanyDTO payload = new CompanyDTO();
-        payload.setNIT(900777888L);
-        payload.setNombre("Nueva Co");
+        payload.setNit(900777888L);
+        payload.setName("Nueva Co");
         payload.setCorreoContacto("hola@nueva.co");
 
         mockMvc.perform(post("/api/company")
@@ -97,8 +97,8 @@ class CompanyControllerTest {
     void updateCompany_returnsOk_andCallsService() throws Exception {
         CompanyDTO payload = new CompanyDTO();
         payload.setId(10L);
-        payload.setNIT(999L);
-        payload.setNombre("Editada");
+        payload.setNit(999L);
+        payload.setName("Editada");
         payload.setCorreoContacto("editada@co.com");
 
         mockMvc.perform(put("/api/company")
