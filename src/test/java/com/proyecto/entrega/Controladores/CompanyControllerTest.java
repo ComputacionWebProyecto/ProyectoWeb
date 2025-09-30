@@ -55,7 +55,7 @@ class CompanyControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.NIT").value(900123456))
-                .andExpect(jsonPath("$.nombre").value("Acme Inc."))
+                .andExpect(jsonPath("$.name").value("Acme Inc."))
                 .andExpect(jsonPath("$.correoContacto").value("contacto@acme.com"));
     }
 
@@ -70,11 +70,11 @@ class CompanyControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].NIT").value(123))
-                .andExpect(jsonPath("$[0].nombre").value("A"))
+                .andExpect(jsonPath("$[0].name").value("A"))
                 .andExpect(jsonPath("$[0].correoContacto").value("a@co.com"))
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].NIT").value(456))
-                .andExpect(jsonPath("$[1].nombre").value("B"))
+                .andExpect(jsonPath("$[1].name").value("B"))
                 .andExpect(jsonPath("$[1].correoContacto").value("b@co.com"));
     }
 

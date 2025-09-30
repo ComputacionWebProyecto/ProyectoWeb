@@ -79,24 +79,62 @@ class UserServiceTest {
     // ---------- updateUser ----------
     @Test
     void updateUser_ok() {
-        UserDTO inDto = new UserDTO(5L, "Juan Edit", "juan.edit@acme.com", "nuevaPass", 10L, 20L);
-        User entityExisting = new User(5L, "Juan Viejo", "viejo@acme.com", "old", "active", null, null);
-        User entitySaved    = new User(5L, "Juan Edit", "juan.edit@acme.com", "nuevaPass", "active", null, null);
-        UserDTO outDto      = new UserDTO(5L, "Juan Edit", "juan.edit@acme.com", "nuevaPass", 10L, 20L);
+        // DTO de entrada (incluye contraseña)
+        UserDTO inDto = new UserDTO(10L, "Nuevo Nombre", "nuevo@correo.com", "secreta", 11L, 22L);
 
-        when(userRepository.findById(5L)).thenReturn(Optional.of(entityExisting));
-        // modelMapper.map(source, destination) es void; no requiere stub (no hace nada por defecto)
-        when(userRepository.save(entityExisting)).thenReturn(entitySaved);
-        when(modelMapper.map(entitySaved, UserDTO.class)).thenReturn(outDto);
+        // Entity existente en BD
+        User existing = new User();
+        existing.setId(10L);
+        existing.setNombre("Viejo");
+        existing.setCorreo("viejo@correo.com");
+        existing.setContrasena("old");
+        existing.setStatus("active");
 
+        // “Guardado” tras aplicar cambios
+        User saved = new User();
+        saved.setId(10L);
+        saved.setNombre("Nuevo Nombre");
+        saved.setCorreo("nuevo@correo.com");
+        saved.setContrasena("secreta");
+        saved.setStatus("active");
+
+        // DTO de salida que devuelve el service
+        UserDTO outDto = new UserDTO(10L, "Nuevo Nombre", "nuevo@correo.com", "secreta", 11L, 22L);
+
+        // Stubs
+        when(userRepository.findById(10L)).thenReturn(Optional.of(existing));
+
+        // IMPORTANTÍSIMO: stub del map(source DTO -> destination entity existente)
+        // ModelMapper.map(source, destination) (la sobrecarga con destino) es void.
+        doAnswer(inv -> {
+            UserDTO src = inv.getArgument(0);
+            User dest  = inv.getArgument(1);
+            // Simulamos que ModelMapper copia campos del DTO al entity existente
+            dest.setNombre(src.getNombre());
+            dest.setCorreo(src.getCorreo());
+            dest.setContrasena(src.getContrasena());
+            return null; // porque esta sobrecarga es void
+        }).when(modelMapper).map(eq(inDto), same(existing));
+
+        when(userRepository.save(existing)).thenReturn(saved);
+        when(modelMapper.map(saved, UserDTO.class)).thenReturn(outDto);
+
+        // Act
         UserDTO result = userService.updateUser(inDto);
 
-        assertThat(result.getId()).isEqualTo(5L);
-        assertThat(result.getNombre()).isEqualTo("Juan Edit");
-        assertThat(result.getCorreo()).isEqualTo("juan.edit@acme.com");
-        verify(userRepository).findById(5L);
-        verify(userRepository).save(entityExisting);
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(10L);
+        assertThat(result.getNombre()).isEqualTo("Nuevo Nombre");
+        assertThat(result.getCorreo()).isEqualTo("nuevo@correo.com");
+
+        // Verificaciones mínimas
+        verify(userRepository).findById(10L);
+        verify(modelMapper).map(eq(inDto), same(existing)); // dto -> entity existente
+        verify(userRepository).save(existing);
+        verify(modelMapper).map(saved, UserDTO.class);      // entity -> dto (respuesta)
     }
+
 
     @Test
     void updateUser_missingId_throwsIAE() {
