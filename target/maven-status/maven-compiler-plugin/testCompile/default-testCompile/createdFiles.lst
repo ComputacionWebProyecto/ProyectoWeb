@@ -1,1 +1,11 @@
-com/proyecto/entrega/EntregaApplicationTests.class
+com\proyecto\entrega\Controladores\CompanyControllerTest.class
+com\proyecto\entrega\Controladores\ActivityControllerTest.class
+com\proyecto\entrega\EntregaApplicationTests.class
+com\proyecto\entrega\service\GatewayServiceTest.class
+com\proyecto\entrega\service\ActivityServiceTest.class
+com\proyecto\entrega\service\RoleServiceTest.class
+com\proyecto\entrega\service\EdgeServiceTest.class
+com\proyecto\entrega\service\ProcessServiceTest.class
+com\proyecto\entrega\Controladores\EdgeControllerTest.class
+com\proyecto\entrega\service\CompanyServiceTest.class
+com\proyecto\entrega\service\UserServiceTest.class
