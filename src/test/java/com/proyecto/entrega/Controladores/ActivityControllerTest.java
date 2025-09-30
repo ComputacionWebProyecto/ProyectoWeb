@@ -85,7 +85,7 @@ class ActivityControllerTest {
         ActivityDTO payload = new ActivityDTO(
                 null, "Nueva", 1.0, 2.0, "d", 3.0, 4.0, 99L
         );
-        // el controller no devuelve body (void), solo verificamos la llamada
+        // el controller no devuelve body (void), solo verificamos la llamadaa
         when(activityService.createActivity(any(ActivityDTO.class)))
                 .thenReturn(new ActivityDTO(10L, "Nueva", 1.0, 2.0, "d", 3.0, 4.0, 99L));
 
