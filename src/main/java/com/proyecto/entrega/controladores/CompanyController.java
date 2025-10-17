@@ -45,7 +45,7 @@ public class CompanyController {
 
     @GetMapping()
     public List<CompanyDTO> getCompany() {
-        return companyService.findCompany();
+        return companyService.findCompanies();
     }
 
 }

@@ -34,12 +34,12 @@ public class Role {
     private String descripcion;
     private String status = "active";
 
-    // Relación N:1 con Company
+    
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
 
-    // Relación 1:N con usuarios (varios usuarios pueden tener el mismo rol)
+    
     @OneToMany(mappedBy = "role")
     private List<User> users;
 

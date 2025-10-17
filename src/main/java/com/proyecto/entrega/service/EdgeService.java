@@ -11,8 +11,6 @@ import com.proyecto.entrega.entity.Edge;
 import com.proyecto.entrega.entity.Activity;
 import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.repository.EdgeRepository;
-import com.proyecto.entrega.repository.ActivityRepository;
-import com.proyecto.entrega.repository.ProcessRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -26,22 +24,19 @@ public class EdgeService {
     private EdgeRepository edgeRepository;
 
     @Autowired
-    private ProcessRepository processRepository;
+    private ProcessService processService;
 
     @Autowired
-    private ActivityRepository activityRepository;
+    private ActivityService activityService;
 
     public EdgeDTO createEdge(EdgeDTO edgeDTO) {
         validateIds(edgeDTO);
 
-        Process process = processRepository.findById(edgeDTO.getProcessId())
-                .orElseThrow(() -> new EntityNotFoundException("Process not found"));
+        Process process = modelMapper.map(processService.findProcess(edgeDTO.getProcessId()), Process.class);
 
-        Activity source = activityRepository.findById(edgeDTO.getActivitySourceId())
-                .orElseThrow(() -> new EntityNotFoundException("Activity Source not found"));
+        Activity source = modelMapper.map(activityService.findActivity(edgeDTO.getActivitySourceId()), Activity.class);
 
-        Activity destiny = activityRepository.findById(edgeDTO.getActivityDestinyId())
-                .orElseThrow(() -> new EntityNotFoundException("Activity Destiny not found"));
+        Activity destiny = modelMapper.map(activityService.findActivity(edgeDTO.getActivityDestinyId()), Activity.class);
 
         Edge edge = modelMapper.map(edgeDTO, Edge.class);
         edge.setProcess(process);
@@ -58,14 +53,11 @@ public class EdgeService {
         Edge existing = edgeRepository.findById(edgeDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Edge " + edgeDTO.getId() + " not found"));
 
-        Process process = processRepository.findById(edgeDTO.getProcessId())
-                .orElseThrow(() -> new EntityNotFoundException("Process not found"));
+        Process process = modelMapper.map(processService.findProcess(edgeDTO.getProcessId()), Process.class);
 
-        Activity source = activityRepository.findById(edgeDTO.getActivitySourceId())
-                .orElseThrow(() -> new EntityNotFoundException("Activity Source not found"));
+        Activity source = modelMapper.map(activityService.findActivity(edgeDTO.getActivitySourceId()), Activity.class);
 
-        Activity destiny = activityRepository.findById(edgeDTO.getActivityDestinyId())
-                .orElseThrow(() -> new EntityNotFoundException("Activity Destiny not found"));
+        Activity destiny = modelMapper.map(activityService.findActivity(edgeDTO.getActivityDestinyId()), Activity.class);
 
         // Actualizamos campos
         existing.setDescription(edgeDTO.getDescription());

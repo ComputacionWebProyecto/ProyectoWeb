@@ -10,8 +10,6 @@ import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.entity.Role;
-import com.proyecto.entrega.repository.CompanyRepository;
-import com.proyecto.entrega.repository.ProcessRepository;
 import com.proyecto.entrega.repository.RoleRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -26,51 +24,61 @@ public class RoleService {
     private RoleRepository roleRepository;
 
     @Autowired
-    private CompanyRepository companyRepository;
+    private CompanyService companyService;
 
     @Autowired
-    private ProcessRepository processRepository;
+    private ProcessService processService;
 
     public RoleDTO createRole(RoleDTO roleDTO) {
+
+        if(roleDTO.getCompanyId() == null){
+            throw new IllegalArgumentException("CompanyId is required for create");
+        }
+
+        if(roleDTO.getProcessId() == null){
+            throw new IllegalArgumentException("ProcessId is required for create");
+        }
         Role role = modelMapper.map(roleDTO, Role.class);
 
-        // Asignar relaciones manualmente
-        if (roleDTO.getCompanyId() != null) {
-            Company company = companyRepository.findById(roleDTO.getCompanyId())
-                    .orElseThrow(() -> new EntityNotFoundException("Company not found"));
-            role.setCompany(company);
-        }
+        Company company = modelMapper.map(companyService.findCompany(roleDTO.getCompanyId()), Company.class);
 
-        if (roleDTO.getProcessId() != null) {
-            Process process = processRepository.findById(roleDTO.getProcessId())
-                    .orElseThrow(() -> new EntityNotFoundException("Process not found"));
-            role.setProcess(process);
-        }
+        Process process = modelMapper.map(processService.findProcess(roleDTO.getProcessId()), Process.class);
 
+        role.setCompany(company);
+        role.setProcess(process);
+        
         role = roleRepository.save(role);
         return modelMapper.map(role, RoleDTO.class);
     }
 
     public RoleDTO updateRole(RoleDTO roleDTO) {
+
+        if(roleDTO.getId() == null){
+           throw new IllegalArgumentException("Id is required for create"); 
+        }
+
+        if(roleDTO.getCompanyId() == null){
+            throw new IllegalArgumentException("CompanyId is required for create");
+        }
+
+        if(roleDTO.getProcessId() == null){
+            throw new IllegalArgumentException("ProcessId is required for create");
+        }
+
+
         Role role = roleRepository.findById(roleDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Role " + roleDTO.getId() + " not found"));
 
-        // Actualizar campos básicos
+        Company company = modelMapper.map(companyService.findCompany(roleDTO.getCompanyId()), Company.class);
+
+        Process process = modelMapper.map(processService.findProcess(roleDTO.getProcessId()), Process.class);
+
+        // Actualizar campos 
         role.setNombre(roleDTO.getNombre());
         role.setDescripcion(roleDTO.getDescripcion());
+        role.setCompany(company);
+        role.setProcess(process);
 
-        // Actualizar relaciones
-        if (roleDTO.getCompanyId() != null) {
-            Company company = companyRepository.findById(roleDTO.getCompanyId())
-                    .orElseThrow(() -> new EntityNotFoundException("Company not found"));
-            role.setCompany(company);
-        }
-
-        if (roleDTO.getProcessId() != null) {
-            Process process = processRepository.findById(roleDTO.getProcessId())
-                    .orElseThrow(() -> new EntityNotFoundException("Process not found"));
-            role.setProcess(process);
-        }
 
         role = roleRepository.save(role);
         return modelMapper.map(role, RoleDTO.class);

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
+import com.proyecto.entrega.entity.Company;
+import com.proyecto.entrega.entity.Role;
 import com.proyecto.entrega.entity.User;
 import com.proyecto.entrega.repository.UserRepository;
 
@@ -22,15 +24,30 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Crear usuario (incluye contraseña)
+    @Autowired
+    private CompanyService companyService;
+
+    @Autowired
+    private RoleService roleService;
+
+
     public UserDTO createUser(UserDTO userDTO) {
         validateCompanyAndRole(userDTO);
+
         User user = modelMapper.map(userDTO, User.class);
+
+        Company company = modelMapper.map(companyService.findCompany(userDTO.getCompanyId()), Company.class);
+
+        Role role = modelMapper.map(roleService.findRole(userDTO.getRoleId()), Role.class);
+        
+        user.setCompany(company);
+        user.setRole(role);
+
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
     }
 
-    // Actualizar usuario (incluye contraseña)
+    
     public UserDTO updateUser(UserDTO userDTO) {
         if (userDTO.getId() == null) {
             throw new IllegalArgumentException("User ID must not be null for update.");
@@ -39,20 +56,28 @@ public class UserService {
 
         User user = userRepository.findById(userDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User " + userDTO.getId() + " not found"));
-        
-        modelMapper.map(userDTO, user); // Mapea los campos del DTO al entity existente
+
+        Company company = modelMapper.map(companyService.findCompany(userDTO.getCompanyId()), Company.class);
+
+        Role role = modelMapper.map(roleService.findRole(userDTO.getRoleId()), Role.class);
+
+        user.setCompany(company);
+        user.setRole(role);
+        user.setNombre(userDTO.getNombre());
+        user.setCorreo(userDTO.getCorreo());
+    
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
     }
 
-    // Buscar usuario por id (solo DTO seguro, sin contraseña)
+    
     public UserSafeDTO findUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
         return modelMapper.map(user, UserSafeDTO.class);
     }
 
-    // Eliminar usuario (soft delete)
+    
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
@@ -60,7 +85,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // Listar todos los usuarios (solo DTO seguro)
+    
     public List<UserSafeDTO> findAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream()

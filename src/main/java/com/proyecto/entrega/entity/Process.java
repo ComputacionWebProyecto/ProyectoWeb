@@ -44,9 +44,16 @@ public class Process{
     @OneToMany(mappedBy = "process")
     private List<Gateway> gateways;
 
-    // Relación 1:N con roles
     @OneToMany(mappedBy = "process")
     private List<Role> roles;
+
+    @OneToMany(mappedBy = "process")
+    private List<Edge> edges;
+
+    @OneToMany(mappedBy = "process")
+    private List<Activity> activities;
+
+    
 }
 
 

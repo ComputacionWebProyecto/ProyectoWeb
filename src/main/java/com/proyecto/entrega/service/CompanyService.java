@@ -46,7 +46,7 @@ public class CompanyService {
 
     }
 
-    public List<CompanyDTO> findCompany() {
+    public List<CompanyDTO> findCompanies() {
         List<Company> companies = companyRepository.findAll();
         return companies.stream()
                 .map(company -> modelMapper.map(company, CompanyDTO.class))

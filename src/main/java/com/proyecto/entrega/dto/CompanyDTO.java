@@ -1,5 +1,8 @@
 package com.proyecto.entrega.dto;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -18,4 +21,10 @@ public class CompanyDTO {
     private Long nit;
     private String name;
     private String correoContacto;
+    private String status;
+
+    @JsonIgnore
+    private List<ProcessDTO> processes;
+    @JsonIgnore
+    private List<UserSafeDTO> users;
 }

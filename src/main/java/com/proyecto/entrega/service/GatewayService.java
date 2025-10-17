@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.proyecto.entrega.dto.GatewayDTO;
 import com.proyecto.entrega.entity.Gateway;
+import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.repository.GatewayRepository;
-import com.proyecto.entrega.repository.ProcessRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -23,7 +23,7 @@ public class GatewayService {
     private GatewayRepository gatewayRepository;
 
     @Autowired
-    private ProcessRepository ProcessRepository;
+    private ProcessService ProcessService;
 
     // Crear Gateway
     public GatewayDTO createGateway(GatewayDTO gatewayDTO) {
@@ -32,10 +32,12 @@ public class GatewayService {
         }
 
         // Validar que el proceso exista
-        ProcessRepository.findById(gatewayDTO.getProcessId())
-                .orElseThrow(() -> new EntityNotFoundException("BusinessProcess " + gatewayDTO.getProcessId() + " not found"));
+        Process process = modelMapper.map(ProcessService.findProcess(gatewayDTO.getProcessId()), Process.class);
 
         Gateway gateway = modelMapper.map(gatewayDTO, Gateway.class);
+
+        gateway.setProcess(process);
+
         gateway = gatewayRepository.save(gateway);
         return modelMapper.map(gateway, GatewayDTO.class);
     }
@@ -45,21 +47,18 @@ public class GatewayService {
         if (gatewayDTO.getId() == null) {
             throw new IllegalArgumentException("El id del Gateway no puede ser null para actualizar");
         }
+        if (gatewayDTO.getProcessId() == null) {
+            throw new IllegalArgumentException("El processId no puede ser null");
+        }
 
         // Verificar que el gateway exista
         Gateway existingGateway = gatewayRepository.findById(gatewayDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Gateway " + gatewayDTO.getId() + " not found"));
 
-        if (gatewayDTO.getProcessId() == null) {
-            throw new IllegalArgumentException("El processId no puede ser null");
-        }
-
         // Validar que el proceso exista
-        ProcessRepository.findById(gatewayDTO.getProcessId())
-                .orElseThrow(() -> new EntityNotFoundException("BusinessProcess " + gatewayDTO.getProcessId() + " not found"));
+        Process process = modelMapper.map(ProcessService.findProcess(gatewayDTO.getProcessId()), Process.class);
 
-        // Mapear los cambios
-        modelMapper.map(gatewayDTO, existingGateway);
+        existingGateway.setProcess(process);
 
         existingGateway = gatewayRepository.save(existingGateway);
         return modelMapper.map(existingGateway, GatewayDTO.class);

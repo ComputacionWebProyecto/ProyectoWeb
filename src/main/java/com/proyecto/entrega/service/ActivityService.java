@@ -10,7 +10,6 @@ import com.proyecto.entrega.dto.ActivityDTO;
 import com.proyecto.entrega.entity.Activity;
 import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.repository.ActivityRepository;
-import com.proyecto.entrega.repository.ProcessRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -24,7 +23,7 @@ public class ActivityService {
     private ActivityRepository activityRepository;
 
     @Autowired
-    private ProcessRepository processRepository;
+    private ProcessService processService;
 
     public ActivityDTO createActivity(ActivityDTO activityDTO) {
         if (activityDTO.getProcessId() == null) {
@@ -32,8 +31,7 @@ public class ActivityService {
         }
 
         // Validamos que el proceso exista
-        Process process = processRepository.findById(activityDTO.getProcessId())
-                .orElseThrow(() -> new EntityNotFoundException("Process " + activityDTO.getProcessId() + " not found"));
+        Process process = modelMapper.map(processService.findProcess(activityDTO.getProcessId()), Process.class);
 
         Activity activity = modelMapper.map(activityDTO, Activity.class);
         activity.setProcess(process);
@@ -44,15 +42,15 @@ public class ActivityService {
 
     public ActivityDTO updateActivity(ActivityDTO activityDTO) {
         if (activityDTO.getId() == null) {
-            throw new IllegalArgumentException("Activity ID is required for update");
+            throw new IllegalArgumentException("ActivityId is required for update");
         }
         if (activityDTO.getProcessId() == null) {
-            throw new IllegalArgumentException("ProcessId is required");
+            throw new IllegalArgumentException("ProcessId is required for update");
         }
 
         // Validamos que el proceso exista
-        Process process = processRepository.findById(activityDTO.getProcessId())
-                .orElseThrow(() -> new EntityNotFoundException("Process " + activityDTO.getProcessId() + " not found"));
+        Process process = modelMapper.map(processService.findProcess(activityDTO.getProcessId()), Process.class);
+
 
         Activity activity = activityRepository.findById(activityDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Activity " + activityDTO.getId() + " not found"));
@@ -79,7 +77,7 @@ public class ActivityService {
     public void deleteActivity(Long id) {
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
-        activity.setStatus("inactive"); // ojo: tu entidad Activity debe tener este campo
+        activity.setStatus("inactive"); 
         activityRepository.save(activity);
     }
 
