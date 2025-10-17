@@ -33,7 +33,7 @@ public class ProcessService {
         
         Process process = modelMapper.map(processDTO, Process.class);
 
-        Company company = modelMapper.map(companyService.findCompany(processDTO.getCompanyId()), Company.class);
+        Company company = companyService.findCompanyEntity(processDTO.getCompanyId());
 
         process.setCompany(company);
 
@@ -55,7 +55,7 @@ public class ProcessService {
         Process process = processRepository.findById(processDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Process " + processDTO.getId() + " not found"));
         
-        Company company = modelMapper.map(companyService.findCompany(processDTO.getCompanyId()), Company.class); 
+        Company company = companyService.findCompanyEntity(processDTO.getCompanyId()); 
 
         // Actualizar valores 
         process.setName(processDTO.getName());
@@ -72,6 +72,11 @@ public class ProcessService {
                 .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
 
         return modelMapper.map(process, ProcessDTO.class);
+    }
+
+    public Process findProcessEntity(Long id) {
+        return processRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
     }
 
     public void deleteProcess(Long id) {

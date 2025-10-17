@@ -23,7 +23,7 @@ public class GatewayService {
     private GatewayRepository gatewayRepository;
 
     @Autowired
-    private ProcessService ProcessService;
+    private ProcessService processService;
 
     // Crear Gateway
     public GatewayDTO createGateway(GatewayDTO gatewayDTO) {
@@ -32,7 +32,7 @@ public class GatewayService {
         }
 
         // Validar que el proceso exista
-        Process process = modelMapper.map(ProcessService.findProcess(gatewayDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(gatewayDTO.getProcessId());
 
         Gateway gateway = modelMapper.map(gatewayDTO, Gateway.class);
 
@@ -56,7 +56,7 @@ public class GatewayService {
                 .orElseThrow(() -> new EntityNotFoundException("Gateway " + gatewayDTO.getId() + " not found"));
 
         // Validar que el proceso exista
-        Process process = modelMapper.map(ProcessService.findProcess(gatewayDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(gatewayDTO.getProcessId());
 
         existingGateway.setProcess(process);
 
@@ -69,6 +69,11 @@ public class GatewayService {
         Gateway gateway = gatewayRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Gateway " + id + " not found"));
         return modelMapper.map(gateway, GatewayDTO.class);
+    }
+
+    public Gateway findGatewayEntity(Long id) {
+        return gatewayRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Gateway " + id + " not found"));
     }
 
     // Eliminar (lógicamente) Gateway

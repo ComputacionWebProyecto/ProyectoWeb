@@ -31,7 +31,7 @@ public class ActivityService {
         }
 
         // Validamos que el proceso exista
-        Process process = modelMapper.map(processService.findProcess(activityDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(activityDTO.getProcessId());
 
         Activity activity = modelMapper.map(activityDTO, Activity.class);
         activity.setProcess(process);
@@ -49,7 +49,7 @@ public class ActivityService {
         }
 
         // Validamos que el proceso exista
-        Process process = modelMapper.map(processService.findProcess(activityDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(activityDTO.getProcessId());
 
 
         Activity activity = activityRepository.findById(activityDTO.getId())
@@ -72,6 +72,11 @@ public class ActivityService {
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
         return modelMapper.map(activity, ActivityDTO.class);
+    }
+
+    public Activity findActivityEntity(Long id) {
+        return activityRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
     }
 
     public void deleteActivity(Long id) {

@@ -36,9 +36,9 @@ public class UserService {
 
         User user = modelMapper.map(userDTO, User.class);
 
-        Company company = modelMapper.map(companyService.findCompany(userDTO.getCompanyId()), Company.class);
+        Company company = companyService.findCompanyEntity(userDTO.getCompanyId());
 
-        Role role = modelMapper.map(roleService.findRole(userDTO.getRoleId()), Role.class);
+        Role role = roleService.findRoleEntity(userDTO.getRoleId());
         
         user.setCompany(company);
         user.setRole(role);
@@ -57,9 +57,9 @@ public class UserService {
         User user = userRepository.findById(userDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User " + userDTO.getId() + " not found"));
 
-        Company company = modelMapper.map(companyService.findCompany(userDTO.getCompanyId()), Company.class);
+        Company company = companyService.findCompanyEntity(userDTO.getCompanyId());
 
-        Role role = modelMapper.map(roleService.findRole(userDTO.getRoleId()), Role.class);
+        Role role = roleService.findRoleEntity(userDTO.getRoleId());
 
         user.setCompany(company);
         user.setRole(role);
@@ -77,7 +77,11 @@ public class UserService {
         return modelMapper.map(user, UserSafeDTO.class);
     }
 
-    
+    public User findUserEntity(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
+    }
+
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));

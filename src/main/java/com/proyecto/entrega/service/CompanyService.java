@@ -27,7 +27,16 @@ public class CompanyService {
     }
 
     public CompanyDTO updateCompany(CompanyDTO companyDTO) {
-        Company company = modelMapper.map(companyDTO, Company.class);
+        if(companyDTO.getId() == null){
+            throw new IllegalArgumentException("Id is required for update");
+        }
+        Company company = companyRepository.findById(companyDTO.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Company " + companyDTO.getId() + " not found"));
+
+        company.setName(companyDTO.getName());
+        company.setNit(companyDTO.getNit());
+        company.setCorreoContacto(companyDTO.getCorreoContacto());
+        
         company = companyRepository.save(company);
         return modelMapper.map(company, CompanyDTO.class);
     }
@@ -36,6 +45,11 @@ public class CompanyService {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Company " + id + " not found"));
         return modelMapper.map(company, CompanyDTO.class);
+    }
+
+    public Company findCompanyEntity(Long id) {
+        return companyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Company " + id + " not found"));
     }
 
     public void deleteCompany(Long id) {

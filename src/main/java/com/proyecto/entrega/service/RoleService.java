@@ -40,9 +40,9 @@ public class RoleService {
         }
         Role role = modelMapper.map(roleDTO, Role.class);
 
-        Company company = modelMapper.map(companyService.findCompany(roleDTO.getCompanyId()), Company.class);
+        Company company = companyService.findCompanyEntity(roleDTO.getCompanyId());
 
-        Process process = modelMapper.map(processService.findProcess(roleDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(roleDTO.getProcessId());
 
         role.setCompany(company);
         role.setProcess(process);
@@ -69,9 +69,9 @@ public class RoleService {
         Role role = roleRepository.findById(roleDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Role " + roleDTO.getId() + " not found"));
 
-        Company company = modelMapper.map(companyService.findCompany(roleDTO.getCompanyId()), Company.class);
+        Company company = companyService.findCompanyEntity(roleDTO.getCompanyId());
 
-        Process process = modelMapper.map(processService.findProcess(roleDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(roleDTO.getProcessId());
 
         // Actualizar campos 
         role.setNombre(roleDTO.getNombre());
@@ -88,6 +88,11 @@ public class RoleService {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Role " + id + " not found"));
         return modelMapper.map(role, RoleDTO.class);
+    }
+
+    public Role findRoleEntity(Long id) {
+        return roleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Role " + id + " not found"));
     }
 
     public void deleteRole(Long id) {

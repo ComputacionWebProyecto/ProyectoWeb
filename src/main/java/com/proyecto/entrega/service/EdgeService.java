@@ -32,11 +32,11 @@ public class EdgeService {
     public EdgeDTO createEdge(EdgeDTO edgeDTO) {
         validateIds(edgeDTO);
 
-        Process process = modelMapper.map(processService.findProcess(edgeDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(edgeDTO.getProcessId());
 
-        Activity source = modelMapper.map(activityService.findActivity(edgeDTO.getActivitySourceId()), Activity.class);
+        Activity source = activityService.findActivityEntity(edgeDTO.getActivitySourceId());
 
-        Activity destiny = modelMapper.map(activityService.findActivity(edgeDTO.getActivityDestinyId()), Activity.class);
+        Activity destiny = activityService.findActivityEntity(edgeDTO.getActivityDestinyId());
 
         Edge edge = modelMapper.map(edgeDTO, Edge.class);
         edge.setProcess(process);
@@ -53,11 +53,11 @@ public class EdgeService {
         Edge existing = edgeRepository.findById(edgeDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Edge " + edgeDTO.getId() + " not found"));
 
-        Process process = modelMapper.map(processService.findProcess(edgeDTO.getProcessId()), Process.class);
+        Process process = processService.findProcessEntity(edgeDTO.getProcessId());
 
-        Activity source = modelMapper.map(activityService.findActivity(edgeDTO.getActivitySourceId()), Activity.class);
+        Activity source = activityService.findActivityEntity(edgeDTO.getActivitySourceId());
 
-        Activity destiny = modelMapper.map(activityService.findActivity(edgeDTO.getActivityDestinyId()), Activity.class);
+        Activity destiny = activityService.findActivityEntity(edgeDTO.getActivityDestinyId());
 
         // Actualizamos campos
         existing.setDescription(edgeDTO.getDescription());
@@ -73,6 +73,11 @@ public class EdgeService {
         Edge edge = edgeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Edge " + id + " not found"));
         return modelMapper.map(edge, EdgeDTO.class);
+    }
+
+    public Edge findEdgeEntity(Long id) {
+        return edgeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Edge " + id + " not found"));
     }
 
     public void deleteEdge(Long id) {
