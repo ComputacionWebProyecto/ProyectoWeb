@@ -23,13 +23,13 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping()
-    public void createRole(@RequestBody RoleDTO role) {
-        roleService.createRole(role);
+    public RoleDTO createRole(@RequestBody RoleDTO role) {
+        return roleService.createRole(role);
     }
 
     @PutMapping()
-    public void updateRole(@RequestBody RoleDTO role) {
-        roleService.updateRole(role);
+    public RoleDTO updateRole(@RequestBody RoleDTO role) {
+        return roleService.updateRole(role);
     }
 
     @DeleteMapping(value = "/{id}")

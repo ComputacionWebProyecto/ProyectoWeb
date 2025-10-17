@@ -24,13 +24,13 @@ public class CompanyController {
     private CompanyService companyService;
 
     @PostMapping()
-    public void createCompany(@RequestBody CompanyDTO company) {
-        companyService.createCompany(company);
+    public CompanyDTO createCompany(@RequestBody CompanyDTO company) {
+        return companyService.createCompany(company);
     }
 
     @PutMapping()
-    public void updateCompany(@RequestBody CompanyDTO company) {
-        companyService.updateCompany(company);
+    public CompanyDTO updateCompany(@RequestBody CompanyDTO company) {
+        return companyService.updateCompany(company);
     }
 
     @DeleteMapping(value = "/{id}")

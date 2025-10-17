@@ -24,13 +24,13 @@ public class GatewayController {
     private GatewayService gatewayService;
 
     @PostMapping()
-    public void createGateway(@RequestBody GatewayDTO gatewayDTO) {
-        gatewayService.createGateway(gatewayDTO);
+    public GatewayDTO createGateway(@RequestBody GatewayDTO gatewayDTO) {
+        return gatewayService.createGateway(gatewayDTO);
     }
 
     @PutMapping()
-    public void updateGateway(@RequestBody GatewayDTO gatewayDTO) {
-        gatewayService.updateGateway(gatewayDTO);
+    public GatewayDTO updateGateway(@RequestBody GatewayDTO gatewayDTO) {
+        return gatewayService.updateGateway(gatewayDTO);
     }
 
     @DeleteMapping(value = "/{id}")

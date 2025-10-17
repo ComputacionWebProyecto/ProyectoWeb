@@ -21,13 +21,13 @@ public class ProcessController {
     private ProcessService processService;
 
     @PostMapping()
-    public void createProcess(@RequestBody ProcessDTO process) {
-        processService.createProcess(process);
+    public ProcessDTO createProcess(@RequestBody ProcessDTO process) {
+        return processService.createProcess(process);
     }
 
     @PutMapping()
-    public void updateProcess(@RequestBody ProcessDTO  process) {
-        processService.updateProcess(process);
+    public ProcessDTO updateProcess(@RequestBody ProcessDTO  process) {
+        return processService.updateProcess(process);
     }
 
     @DeleteMapping(value = "/{id}")
