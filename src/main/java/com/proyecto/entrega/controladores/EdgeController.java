@@ -24,13 +24,13 @@ public class EdgeController {
     private EdgeService edgeService;
 
     @PostMapping()
-    public void createEdge(@RequestBody EdgeDTO edgeDTO) {
-        edgeService.createEdge(edgeDTO);
+    public EdgeDTO createEdge(@RequestBody EdgeDTO edgeDTO) {
+        return edgeService.createEdge(edgeDTO);
     }
 
     @PutMapping()
-    public void updateEdge(@RequestBody EdgeDTO edgeDTO) {
-        edgeService.updateEdge(edgeDTO);
+    public EdgeDTO updateEdge(@RequestBody EdgeDTO edgeDTO) {
+        return edgeService.updateEdge(edgeDTO);
     }
 
     @DeleteMapping(value = "/{id}")

@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,7 @@ import lombok.Setter;
 @Where(clause = "status = 'active'")
 @SQLDelete(sql = "UPDATE process SET status = 'inactive' WHERE id = ?")
 
+@Table(name = "process")
 public class Process{
     
     @Id
@@ -33,7 +35,7 @@ public class Process{
     private Long id;
     private String name; 
     private String description;
-    private String status;
+    private String status = "active";
 
     @ManyToOne
     @JoinColumn(name = "company_id")
@@ -42,9 +44,13 @@ public class Process{
     @OneToMany(mappedBy = "process")
     private List<Gateway> gateways;
 
-    // Relación 1:N con roles
     @OneToMany(mappedBy = "process")
-    private List<Role> roles;
+    private List<Edge> edges;
+
+    @OneToMany(mappedBy = "process")
+    private List<Activity> activities;
+
+    
 }
 
 

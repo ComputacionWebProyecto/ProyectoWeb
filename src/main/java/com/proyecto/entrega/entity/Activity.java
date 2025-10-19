@@ -1,6 +1,8 @@
 package com.proyecto.entrega.entity;
 
 
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -10,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,11 +37,21 @@ public class Activity {
     private String description;
     private Double width;
     private Double height;
-    private String status;
+    private String status = "active";
 
     @ManyToOne
     @JoinColumn(name = "process_id")
     private Process process;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+
+    @OneToMany(mappedBy = "activitySource")
+    private List<Edge> outgoingEdges;  
+    
+    @OneToMany(mappedBy = "activityDestiny")
+    private List<Edge> incomingEdges; 
 
 }
 

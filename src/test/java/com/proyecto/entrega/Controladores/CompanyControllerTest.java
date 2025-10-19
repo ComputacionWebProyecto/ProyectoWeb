@@ -45,8 +45,8 @@ class CompanyControllerTest {
     void getCompany_byId_returnsOkWithBody() throws Exception {
         CompanyDTO dto = new CompanyDTO();
         dto.setId(1L);
-        dto.setNIT(900123456L);
-        dto.setNombre("Acme Inc.");
+        dto.setNit(900123456L);
+        dto.setName("Acme Inc.");
         dto.setCorreoContacto("contacto@acme.com");
 
         Mockito.when(companyService.findCompany(1L)).thenReturn(dto);
@@ -55,7 +55,7 @@ class CompanyControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.NIT").value(900123456))
-                .andExpect(jsonPath("$.nombre").value("Acme Inc."))
+                .andExpect(jsonPath("$.name").value("Acme Inc."))
                 .andExpect(jsonPath("$.correoContacto").value("contacto@acme.com"));
     }
 
@@ -70,19 +70,19 @@ class CompanyControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].NIT").value(123))
-                .andExpect(jsonPath("$[0].nombre").value("A"))
+                .andExpect(jsonPath("$[0].name").value("A"))
                 .andExpect(jsonPath("$[0].correoContacto").value("a@co.com"))
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].NIT").value(456))
-                .andExpect(jsonPath("$[1].nombre").value("B"))
+                .andExpect(jsonPath("$[1].name").value("B"))
                 .andExpect(jsonPath("$[1].correoContacto").value("b@co.com"));
     }
 
     @Test
     void createCompany_returnsOk_andCallsService() throws Exception {
         CompanyDTO payload = new CompanyDTO();
-        payload.setNIT(900777888L);
-        payload.setNombre("Nueva Co");
+        payload.setNit(900777888L);
+        payload.setName("Nueva Co");
         payload.setCorreoContacto("hola@nueva.co");
 
         mockMvc.perform(post("/api/company")
@@ -97,8 +97,8 @@ class CompanyControllerTest {
     void updateCompany_returnsOk_andCallsService() throws Exception {
         CompanyDTO payload = new CompanyDTO();
         payload.setId(10L);
-        payload.setNIT(999L);
-        payload.setNombre("Editada");
+        payload.setNit(999L);
+        payload.setName("Editada");
         payload.setCorreoContacto("editada@co.com");
 
         mockMvc.perform(put("/api/company")

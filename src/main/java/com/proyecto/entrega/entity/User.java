@@ -32,9 +32,10 @@ public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+    private String nombre;
     private String correo;
     private String contrasena;
+    private String status = "active";
 
     @ManyToOne
     @JoinColumn(name = "company_id")

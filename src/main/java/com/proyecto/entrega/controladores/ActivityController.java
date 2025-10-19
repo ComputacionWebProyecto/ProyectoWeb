@@ -24,13 +24,13 @@ public class ActivityController {
     private ActivityService activityService;
 
     @PostMapping()
-    public void createActivity(@RequestBody ActivityDTO activity) {
-        activityService.createActivity(activity);
+    public ActivityDTO createActivity(@RequestBody ActivityDTO activity) {
+        return activityService.createActivity(activity);
     }
 
     @PutMapping()
-    public void updateActivity(@RequestBody ActivityDTO activity) {
-        activityService.updateActivity(activity);
+    public ActivityDTO updateActivity(@RequestBody ActivityDTO activity) {
+        return activityService.updateActivity(activity);
     }
 
     @DeleteMapping(value = "/{id}")

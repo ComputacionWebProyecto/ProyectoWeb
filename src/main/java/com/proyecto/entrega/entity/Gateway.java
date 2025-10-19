@@ -28,8 +28,8 @@ public class Gateway {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String status; //aceptado o no aceptado
-    private String type; //exclusivos,	paralelos	o	inclusivos
+    private String status = "active"; 
+    private String type; 
 
     @ManyToOne
     @JoinColumn(name = "process_id")

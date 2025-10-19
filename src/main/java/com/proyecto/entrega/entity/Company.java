@@ -11,7 +11,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,17 +31,17 @@ public class Company{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long NIT;
+    private Long nit;
     private String name;
     private String correoContacto;
-    private String status;
+    private String status = "active";
     
 
     @OneToMany(mappedBy = "company")
     private List<Process> processes;
 
     @OneToMany(mappedBy = "company")
-    private List<User> user;
+    private List<User> users;
 
 }
 

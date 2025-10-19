@@ -32,18 +32,17 @@ public class Role {
     private Long id;
     private String nombre;
     private String descripcion;
-    private String status;
+    private String status = "active";
 
-    // Relación N:1 con Company
+    
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
 
-    // Relación 1:N con usuarios (varios usuarios pueden tener el mismo rol)
+    
     @OneToMany(mappedBy = "role")
     private List<User> users;
 
-    @ManyToOne
-    @JoinColumn(name = "process_id")
-    private Process process;
+    @OneToMany(mappedBy = "role")
+    private List<Activity> activities;
 }

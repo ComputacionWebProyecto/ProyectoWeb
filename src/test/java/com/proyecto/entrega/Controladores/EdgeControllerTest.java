@@ -6,16 +6,17 @@ import com.proyecto.entrega.dto.EdgeDTO;
 import com.proyecto.entrega.service.EdgeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.http.MediaType;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -23,88 +24,107 @@ class EdgeControllerTest {
 
     private MockMvc mockMvc;
     private EdgeService edgeService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper om = new ObjectMapper();
 
     @BeforeEach
     void setup() {
-        edgeService = Mockito.mock(EdgeService.class);
-
-        // Controller real
+        edgeService = mock(EdgeService.class);
         EdgeController controller = new EdgeController();
 
-        // Inyectar el service (@Autowired por campo) vía reflexión
+        // inyección por reflexión (simple y sin Spring)
         try {
-            Field f = EdgeController.class.getDeclaredField("edgeService");
+            var f = EdgeController.class.getDeclaredField("edgeService");
             f.setAccessible(true);
             f.set(controller, edgeService);
         } catch (Exception e) {
-            throw new RuntimeException("No se pudo inyectar EdgeService en EdgeController", e);
+            throw new RuntimeException(e);
         }
 
-        // Construir MockMvc solo con este controller
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
     @Test
-    void getEdge_byId_returnsOkWithBody() throws Exception {
-        EdgeDTO dto = new EdgeDTO(1L, "flujo principal", "active");
-        Mockito.when(edgeService.findEdge(1L)).thenReturn(dto);
+    void getEdge_returnsOkWithBody() throws Exception {
+        EdgeDTO dto = new EdgeDTO(1L, "A->B", 10L, 100L, 200L);
+        when(edgeService.findEdge(1L)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/edge/1"))
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$.id").value(1L))
-               .andExpect(jsonPath("$.description").value("flujo principal"))
-               .andExpect(jsonPath("$.status").value("active"));
+        mockMvc.perform(get("/api/edge/{id}", 1L))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.description", is("A->B")))
+                .andExpect(jsonPath("$.processId", is(10)))
+                .andExpect(jsonPath("$.activitySourceId", is(100)))
+                .andExpect(jsonPath("$.activityDestinyId", is(200)));
     }
 
     @Test
-    void getEdges_list_returnsOkArray() throws Exception {
-        List<EdgeDTO> list = List.of(
-                new EdgeDTO(1L, "camino A→B", "active"),
-                new EdgeDTO(2L, "camino B→C", "inactive")
-        );
-        Mockito.when(edgeService.findEdges()).thenReturn(list);
+    void getEdges_returnsList() throws Exception {
+        var dto1 = new EdgeDTO(1L, "A->B", 10L, 100L, 200L);
+        var dto2 = new EdgeDTO(2L, "B->C", 20L, 200L, 300L);
+        when(edgeService.findEdges()).thenReturn(List.of(dto1, dto2));
 
         mockMvc.perform(get("/api/edge"))
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$.length()").value(2))
-               .andExpect(jsonPath("$[0].id").value(1))
-               .andExpect(jsonPath("$[0].description").value("camino A→B"))
-               .andExpect(jsonPath("$[0].status").value("active"))
-               .andExpect(jsonPath("$[1].id").value(2))
-               .andExpect(jsonPath("$[1].description").value("camino B→C"))
-               .andExpect(jsonPath("$[1].status").value("inactive"));
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("[0].id", is(1)))
+                .andExpect(jsonPath("[0].description", is("A->B")))
+                .andExpect(jsonPath("[0].processId", is(10)))
+                .andExpect(jsonPath("[0].activitySourceId", is(100)))
+                .andExpect(jsonPath("[0].activityDestinyId", is(200)))
+                .andExpect(jsonPath("[1].id", is(2)))
+                .andExpect(jsonPath("[1].description", is("B->C")))
+                .andExpect(jsonPath("[1].processId", is(20)))
+                .andExpect(jsonPath("[1].activitySourceId", is(200)))
+                .andExpect(jsonPath("[1].activityDestinyId", is(300)));
     }
 
     @Test
     void createEdge_returnsOk_andCallsService() throws Exception {
-        EdgeDTO payload = new EdgeDTO(null, "nuevo enlace", "active");
+        EdgeDTO payload = new EdgeDTO(null, "Nueva", 99L, 1000L, 2000L);
+        // el controller devuelve void; el service devuelve DTO (lo mockeamos igual)
+        when(edgeService.createEdge(any(EdgeDTO.class)))
+                .thenReturn(new EdgeDTO(10L, "Nueva", 99L, 1000L, 2000L));
 
         mockMvc.perform(post("/api/edge")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
-               .andExpect(status().isOk());
+                        .contentType(APPLICATION_JSON)
+                        .content(om.writeValueAsString(payload)))
+                .andExpect(status().isOk());
 
-        verify(edgeService).createEdge(any(EdgeDTO.class));
+        ArgumentCaptor<EdgeDTO> captor = ArgumentCaptor.forClass(EdgeDTO.class);
+        verify(edgeService).createEdge(captor.capture());
+        EdgeDTO sent = captor.getValue();
+        // aseguramos que viajan números (no strings)
+        org.assertj.core.api.Assertions.assertThat(sent.getProcessId()).isEqualTo(99L);
+        org.assertj.core.api.Assertions.assertThat(sent.getActivitySourceId()).isEqualTo(1000L);
+        org.assertj.core.api.Assertions.assertThat(sent.getActivityDestinyId()).isEqualTo(2000L);
     }
 
     @Test
     void updateEdge_returnsOk_andCallsService() throws Exception {
-        EdgeDTO payload = new EdgeDTO(10L, "enlace editado", "active");
+        EdgeDTO payload = new EdgeDTO(5L, "Editada", 77L, 111L, 222L);
+        when(edgeService.updateEdge(any(EdgeDTO.class))).thenReturn(payload);
 
         mockMvc.perform(put("/api/edge")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
-               .andExpect(status().isOk());
+                        .contentType(APPLICATION_JSON)
+                        .content(om.writeValueAsString(payload)))
+                .andExpect(status().isOk());
 
-        verify(edgeService).updateEdge(any(EdgeDTO.class));
+        ArgumentCaptor<EdgeDTO> captor = ArgumentCaptor.forClass(EdgeDTO.class);
+        verify(edgeService).updateEdge(captor.capture());
+        EdgeDTO sent = captor.getValue();
+        org.assertj.core.api.Assertions.assertThat(sent.getId()).isEqualTo(5L);
+        org.assertj.core.api.Assertions.assertThat(sent.getProcessId()).isEqualTo(77L);
+        org.assertj.core.api.Assertions.assertThat(sent.getActivitySourceId()).isEqualTo(111L);
+        org.assertj.core.api.Assertions.assertThat(sent.getActivityDestinyId()).isEqualTo(222L);
     }
 
     @Test
     void deleteEdge_returnsOk_andCallsService() throws Exception {
-        mockMvc.perform(delete("/api/edge/7"))
-               .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/edge/{id}", 9L))
+                .andExpect(status().isOk());
 
-        verify(edgeService).deleteEdge(7L);
+        verify(edgeService).deleteEdge(9L);
     }
 }
