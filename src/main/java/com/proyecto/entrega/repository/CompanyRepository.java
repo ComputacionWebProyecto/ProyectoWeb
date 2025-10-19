@@ -6,4 +6,8 @@ import com.proyecto.entrega.entity.Company;
 
 public interface CompanyRepository extends JpaRepository<Company, Long>{
 
+    boolean existsByName(String name);
+
+    boolean existsByCorreoContacto(String correoContacto);
+
 }

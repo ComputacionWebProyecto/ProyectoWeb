@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.proyecto.entrega.dto.CompanyDTO;
 import com.proyecto.entrega.entity.Company;
@@ -21,6 +23,12 @@ public class CompanyService {
     private CompanyRepository companyRepository;
 
     public CompanyDTO createCompany(CompanyDTO companyDTO) {
+        if(companyRepository.existsByName(companyDTO.getName())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de compañía ya existe");
+        }
+        if(companyRepository.existsByCorreoContacto(companyDTO.getCorreoContacto())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Correo de compañía ya existe");
+        }
         Company company = modelMapper.map(companyDTO, Company.class);
         company = companyRepository.save(company);
         return modelMapper.map(company, CompanyDTO.class);
@@ -30,6 +38,7 @@ public class CompanyService {
         if(companyDTO.getId() == null){
             throw new IllegalArgumentException("Id is required for update");
         }
+        
         Company company = companyRepository.findById(companyDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Company " + companyDTO.getId() + " not found"));
 

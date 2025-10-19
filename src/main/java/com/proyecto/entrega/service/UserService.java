@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
@@ -20,7 +22,7 @@ public class UserService {
 
     @Autowired
     private ModelMapper modelMapper;
-    
+
     @Autowired
     private UserRepository userRepository;
 
@@ -30,16 +32,19 @@ public class UserService {
     @Autowired
     private RoleService roleService;
 
-
     public UserDTO createUser(UserDTO userDTO) {
         validateCompanyAndRole(userDTO);
+
+        if (userRepository.existsByCorreo(userDTO.getCorreo())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Correo de usuario ya existe");
+        }
 
         User user = modelMapper.map(userDTO, User.class);
 
         Company company = companyService.findCompanyEntity(userDTO.getCompanyId());
 
         Role role = roleService.findRoleEntity(userDTO.getRoleId());
-        
+
         user.setCompany(company);
         user.setRole(role);
 
@@ -47,7 +52,6 @@ public class UserService {
         return modelMapper.map(user, UserDTO.class);
     }
 
-    
     public UserDTO updateUser(UserDTO userDTO) {
         if (userDTO.getId() == null) {
             throw new IllegalArgumentException("User ID must not be null for update.");
@@ -65,12 +69,11 @@ public class UserService {
         user.setRole(role);
         user.setNombre(userDTO.getNombre());
         user.setCorreo(userDTO.getCorreo());
-    
+
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
     }
 
-    
     public UserSafeDTO findUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
@@ -89,7 +92,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-    
     public List<UserSafeDTO> findAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream()

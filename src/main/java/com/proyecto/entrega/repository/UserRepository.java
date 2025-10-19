@@ -6,6 +6,8 @@ import com.proyecto.entrega.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long>{
 
+    boolean existsByCorreo(String correo);
+
 }
 
 
