@@ -23,13 +23,11 @@ public class RoleDTO {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long companyId;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private Long processId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private CompanyDTO company;
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private ProcessDTO process;
     @JsonIgnore
     private List<UserSafeDTO> users;
+    @JsonIgnore
+    private List<ActivityDTO> activities;
 }

@@ -28,9 +28,13 @@ public class ActivityDTO {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long processId;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private Long roleId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private ProcessDTO process;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private RoleDTO role;
 
     @JsonIgnore
     private List<Edge> outgoingEdges;

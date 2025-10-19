@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.entity.Company;
-import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.entity.Role;
 import com.proyecto.entrega.repository.RoleRepository;
 
@@ -26,26 +25,16 @@ public class RoleService {
     @Autowired
     private CompanyService companyService;
 
-    @Autowired
-    private ProcessService processService;
-
     public RoleDTO createRole(RoleDTO roleDTO) {
 
         if(roleDTO.getCompanyId() == null){
             throw new IllegalArgumentException("CompanyId is required for create");
         }
-
-        if(roleDTO.getProcessId() == null){
-            throw new IllegalArgumentException("ProcessId is required for create");
-        }
         Role role = modelMapper.map(roleDTO, Role.class);
 
         Company company = companyService.findCompanyEntity(roleDTO.getCompanyId());
 
-        Process process = processService.findProcessEntity(roleDTO.getProcessId());
-
         role.setCompany(company);
-        role.setProcess(process);
         
         role = roleRepository.save(role);
         return modelMapper.map(role, RoleDTO.class);
@@ -61,23 +50,16 @@ public class RoleService {
             throw new IllegalArgumentException("CompanyId is required for create");
         }
 
-        if(roleDTO.getProcessId() == null){
-            throw new IllegalArgumentException("ProcessId is required for create");
-        }
-
 
         Role role = roleRepository.findById(roleDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Role " + roleDTO.getId() + " not found"));
 
         Company company = companyService.findCompanyEntity(roleDTO.getCompanyId());
 
-        Process process = processService.findProcessEntity(roleDTO.getProcessId());
-
         // Actualizar campos 
         role.setNombre(roleDTO.getNombre());
         role.setDescripcion(roleDTO.getDescripcion());
         role.setCompany(company);
-        role.setProcess(process);
 
 
         role = roleRepository.save(role);

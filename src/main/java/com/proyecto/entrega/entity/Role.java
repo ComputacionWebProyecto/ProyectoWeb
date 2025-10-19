@@ -43,7 +43,6 @@ public class Role {
     @OneToMany(mappedBy = "role")
     private List<User> users;
 
-    @ManyToOne
-    @JoinColumn(name = "process_id")
-    private Process process;
+    @OneToMany(mappedBy = "role")
+    private List<Activity> activities;
 }

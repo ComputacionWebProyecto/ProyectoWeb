@@ -43,6 +43,10 @@ public class Activity {
     @JoinColumn(name = "process_id")
     private Process process;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+
     @OneToMany(mappedBy = "activitySource")
     private List<Edge> outgoingEdges;  
     

@@ -31,8 +31,6 @@ public class ProcessDTO {
     @JsonIgnore
     private List<GatewayDTO> gateways;
     @JsonIgnore
-    private List<RoleDTO> roles;
-    @JsonIgnore
     private List<EdgeDTO> edges;
     @JsonIgnore
     private List<ActivityDTO> activities;

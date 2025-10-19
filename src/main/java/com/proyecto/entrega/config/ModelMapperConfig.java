@@ -32,7 +32,6 @@ public class ModelMapperConfig {
         // ========== PROCESS ==========
         modelMapper.typeMap(Process.class, ProcessDTO.class).addMappings(mapper -> {
             mapper.skip(ProcessDTO::setGateways);
-            mapper.skip(ProcessDTO::setRoles);
             mapper.skip(ProcessDTO::setEdges);
             mapper.skip(ProcessDTO::setActivities);
             // Mapear company pero SIN sus listas
@@ -64,7 +63,6 @@ public class ModelMapperConfig {
         modelMapper.typeMap(Role.class, RoleDTO.class).addMappings(mapper -> {
             mapper.skip(RoleDTO::setUsers);
             mapper.using(companyConverter()).map(Role::getCompany, RoleDTO::setCompany);
-            mapper.using(processConverter()).map(Role::getProcess, RoleDTO::setProcess);
         });
 
         // ========== USER ==========

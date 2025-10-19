@@ -45,9 +45,6 @@ public class Process{
     private List<Gateway> gateways;
 
     @OneToMany(mappedBy = "process")
-    private List<Role> roles;
-
-    @OneToMany(mappedBy = "process")
     private List<Edge> edges;
 
     @OneToMany(mappedBy = "process")
