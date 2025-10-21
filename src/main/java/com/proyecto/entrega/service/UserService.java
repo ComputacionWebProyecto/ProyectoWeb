@@ -1,6 +1,7 @@
 package com.proyecto.entrega.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,6 @@ public class UserService {
         User user = modelMapper.map(userDTO, User.class);
 
         Company company = companyService.findCompanyEntity(userDTO.getCompanyId());
-
         Role role = roleService.findRoleEntity(userDTO.getRoleId());
 
         user.setCompany(company);
@@ -62,7 +62,6 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User " + userDTO.getId() + " not found"));
 
         Company company = companyService.findCompanyEntity(userDTO.getCompanyId());
-
         Role role = roleService.findRoleEntity(userDTO.getRoleId());
 
         user.setCompany(company);
@@ -97,6 +96,18 @@ public class UserService {
         return users.stream()
                 .map(user -> modelMapper.map(user, UserSafeDTO.class))
                 .toList();
+    }
+
+    // MÉTODOS PARA LOGIN
+    public Optional<UserDTO> findByEmail(String correo) {
+        Optional<User> user = userRepository.findByCorreo(correo);
+        return user.map(u -> modelMapper.map(u, UserDTO.class));
+    }
+
+    public UserDTO getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
+        return modelMapper.map(user, UserDTO.class);
     }
 
     private void validateCompanyAndRole(UserDTO userDTO) {
