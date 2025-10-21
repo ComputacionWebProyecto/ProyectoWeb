@@ -92,6 +92,13 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public List<UserSafeDTO> getUsersByCompany(Long id, Long excludedUserId) {
+        List<User> users = userRepository.findByCompanyIdAndIdNot(id, excludedUserId);
+        return users.stream()
+                .map(user -> modelMapper.map(user, UserSafeDTO.class))
+                .toList();
+    }
+
     public List<UserSafeDTO> findAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream()
