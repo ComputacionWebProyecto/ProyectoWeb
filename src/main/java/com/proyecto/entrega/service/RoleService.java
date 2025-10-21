@@ -27,7 +27,7 @@ public class RoleService {
 
     public RoleDTO createRole(RoleDTO roleDTO) {
 
-        if(roleDTO.getCompanyId() == null){
+        if (roleDTO.getCompanyId() == null) {
             throw new IllegalArgumentException("CompanyId is required for create");
         }
         Role role = modelMapper.map(roleDTO, Role.class);
@@ -35,32 +35,30 @@ public class RoleService {
         Company company = companyService.findCompanyEntity(roleDTO.getCompanyId());
 
         role.setCompany(company);
-        
+
         role = roleRepository.save(role);
         return modelMapper.map(role, RoleDTO.class);
     }
 
     public RoleDTO updateRole(RoleDTO roleDTO) {
 
-        if(roleDTO.getId() == null){
-           throw new IllegalArgumentException("Id is required for create"); 
+        if (roleDTO.getId() == null) {
+            throw new IllegalArgumentException("Id is required for create");
         }
 
-        if(roleDTO.getCompanyId() == null){
+        if (roleDTO.getCompanyId() == null) {
             throw new IllegalArgumentException("CompanyId is required for create");
         }
-
 
         Role role = roleRepository.findById(roleDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Role " + roleDTO.getId() + " not found"));
 
         Company company = companyService.findCompanyEntity(roleDTO.getCompanyId());
 
-        // Actualizar campos 
+        // Actualizar campos
         role.setNombre(roleDTO.getNombre());
         role.setDescripcion(roleDTO.getDescripcion());
         role.setCompany(company);
-
 
         role = roleRepository.save(role);
         return modelMapper.map(role, RoleDTO.class);
@@ -89,5 +87,13 @@ public class RoleService {
         return roles.stream()
                 .map(role -> modelMapper.map(role, RoleDTO.class))
                 .toList();
+    }
+
+    public List<RoleDTO> getUsersByCompany(Long id) {
+        List<Role> roles = roleRepository.findByCompanyId(id);
+        return roles.stream()
+                .map(role -> modelMapper.map(role, RoleDTO.class))
+                .toList();
+
     }
 }

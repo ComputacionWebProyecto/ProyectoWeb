@@ -68,6 +68,10 @@ public class UserService {
         user.setNombre(userDTO.getNombre());
         user.setCorreo(userDTO.getCorreo());
 
+        if (userDTO.getContrasena() != null && !userDTO.getContrasena().isBlank()) {
+            user.setContrasena(userDTO.getContrasena());
+        }
+
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
     }
@@ -106,7 +110,7 @@ public class UserService {
 
     // MÉTODOS PARA LOGIN
     public UserDTO findByEmail(String correo) {
-        User user =userRepository.findByCorreo(correo);
+        User user = userRepository.findByCorreo(correo);
         return modelMapper.map(user, UserDTO.class);
     }
 
