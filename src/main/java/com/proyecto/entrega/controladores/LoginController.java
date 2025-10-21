@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.LoginDTO;
-import com.proyecto.entrega.dto.LoginResponseDTO;
+import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.service.LoginService;
 
 @RestController
@@ -21,8 +21,8 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO request) {
-        LoginResponseDTO response = loginService.authenticate(request);
+    public ResponseEntity<UserDTO> login(@RequestBody LoginDTO request) {
+        UserDTO response = loginService.authenticate(request);
         return ResponseEntity.ok(response);
     }
 }

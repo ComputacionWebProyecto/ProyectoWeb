@@ -99,9 +99,9 @@ public class UserService {
     }
 
     // MÉTODOS PARA LOGIN
-    public Optional<UserDTO> findByEmail(String correo) {
-        Optional<User> user = userRepository.findByCorreo(correo);
-        return user.map(u -> modelMapper.map(u, UserDTO.class));
+    public UserDTO findByEmail(String correo) {
+        User user =userRepository.findByCorreo(correo);
+        return modelMapper.map(user, UserDTO.class);
     }
 
     public UserDTO getUserById(Long id) {

@@ -23,24 +23,15 @@ public class LoginService {
         this.roleService = roleService;
     }
 
-    public LoginResponseDTO authenticate(LoginDTO loginDTO) {
+    public UserDTO authenticate(LoginDTO loginDTO) {
         // 1. Buscar usuario por correo
-        UserDTO user = userService.findByEmail(loginDTO.getCorreo())
-                .orElseThrow(() -> new InvalidCredentialsException("Credenciales inválidas"));
+        UserDTO user = userService.findByEmail(loginDTO.getCorreo());
 
         // 2. Verificar contraseña
         if (!loginDTO.getContrasena().equals(user.getContrasena())) {
             throw new InvalidCredentialsException("Credenciales inválidas");
         }
-
-        // 3. Obtener información relacionada
-        CompanyDTO company = companyService.findCompany(user.getCompanyId());
-        RoleDTO role = roleService.findRole(user.getRoleId());
-
-        // 4. Limpiar contraseña antes de enviar respuesta
-        user.setContrasena(null);
         
-        // 5. Retornar respuesta
-        return new LoginResponseDTO("Login exitoso", user, company, role);
+        return user;
     }
 }
