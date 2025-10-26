@@ -92,4 +92,11 @@ public class ProcessService {
                 .map(process -> modelMapper.map(process, ProcessDTO.class))
                 .toList();
     }
+
+    public List<ProcessDTO> getProcessesByCompany(Long id) {
+        List<Process> processes = processRepository.findByCompanyId(id);
+        return processes.stream()
+                .map(process -> modelMapper.map(process, ProcessDTO.class))
+                .toList();
+    }
 }

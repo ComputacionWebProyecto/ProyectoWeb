@@ -45,4 +45,8 @@ public class ProcessController {
         return processService.findProcesses();
     }
 
+    @GetMapping(value = "/company/{id}")
+    public List<ProcessDTO> getProcessesByCompany(@PathVariable Long id){
+        return processService.getProcessesByCompany(id);
+    }
 }
