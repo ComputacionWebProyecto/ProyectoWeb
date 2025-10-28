@@ -3,6 +3,7 @@ package com.proyecto.entrega.controladores;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.ProcessDTO;
+import com.proyecto.entrega.dto.ProcessSummaryDTO;
 import com.proyecto.entrega.service.ProcessService;
 @RestController
 @RequestMapping("/api/process")
@@ -49,4 +51,11 @@ public class ProcessController {
     public List<ProcessDTO> getProcessesByCompany(@PathVariable Long id){
         return processService.getProcessesByCompany(id);
     }
+
+    @GetMapping(value = "/company/{companyId}/summary")
+    public ResponseEntity<List<ProcessSummaryDTO>> getProcessesSummaryByCompany(@PathVariable Long companyId) {
+        List<ProcessSummaryDTO> summaries = processService.getProcessesSummaryByCompany(companyId);
+        return ResponseEntity.ok(summaries);
+    }
+
 }
