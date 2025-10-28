@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.proyecto.entrega.dto.ProcessDTO;
+import com.proyecto.entrega.dto.ProcessSummaryDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.repository.ProcessRepository;
@@ -92,4 +93,30 @@ public class ProcessService {
                 .map(process -> modelMapper.map(process, ProcessDTO.class))
                 .toList();
     }
+
+    public List<ProcessDTO> getProcessesByCompany(Long id) {
+        List<Process> processes = processRepository.findByCompanyId(id);
+        return processes.stream()
+                .map(process -> modelMapper.map(process, ProcessDTO.class))
+                .toList();
+    }
+
+    //Para listar procesos
+    public List<ProcessSummaryDTO> getProcessesSummaryByCompany(Long id) {
+    List<Process> processes = processRepository.findByCompanyId(id);
+    
+    System.out.println("Procesos resumidos enviados al frontend:");
+    processes.forEach(p -> System.out.println(
+        "ID: " + p.getId() + ", Name: " + p.getName() + ", Description: " + p.getDescription()
+    ));
+    
+    return processes.stream()
+            .map(process -> new ProcessSummaryDTO(
+                    process.getId(),
+                    process.getName(),
+                    process.getDescription()
+            ))
+            .toList();
+    }
+
 }

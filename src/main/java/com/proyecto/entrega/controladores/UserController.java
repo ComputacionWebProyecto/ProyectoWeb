@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.UserDTO;
@@ -47,6 +48,11 @@ public class UserController {
     @GetMapping()
     public List<UserSafeDTO> getUser() {
         return userService.findAllUsers();
+    }
+
+    @GetMapping(value = "/company/{id}/currentUser")
+    public List<UserSafeDTO> getUsersByCompany(@PathVariable Long id, @RequestParam Long currentUserId){
+        return userService.getUsersByCompany(id, currentUserId);
     }
 
 }

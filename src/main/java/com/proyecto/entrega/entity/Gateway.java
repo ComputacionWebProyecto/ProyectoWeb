@@ -30,6 +30,8 @@ public class Gateway {
     private Long id;
     private String status = "active"; 
     private String type; 
+    private Double x;
+    private Double y;
 
     @ManyToOne
     @JoinColumn(name = "process_id")

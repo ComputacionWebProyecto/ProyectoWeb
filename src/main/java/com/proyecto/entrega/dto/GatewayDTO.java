@@ -16,6 +16,8 @@ public class GatewayDTO {
     private Long id;
     private String type;
     private String status;
+    private Double x;
+    private Double y;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long processId;

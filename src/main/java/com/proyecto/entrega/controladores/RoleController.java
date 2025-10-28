@@ -1,6 +1,5 @@
 package com.proyecto.entrega.controladores;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,7 @@ import com.proyecto.entrega.service.RoleService;
 @RestController
 @RequestMapping("/api/role")
 public class RoleController {
-     @Autowired
+    @Autowired
     private RoleService roleService;
 
     @PostMapping()
@@ -46,5 +45,10 @@ public class RoleController {
     public List<RoleDTO> getRoles() {
         return roleService.findRoles();
     }
-    
+
+    @GetMapping(value = "/company/{id}")
+    public List<RoleDTO> getRolesByCompany(@PathVariable Long id) {
+        return roleService.getUsersByCompany(id);
+    }
+
 }
