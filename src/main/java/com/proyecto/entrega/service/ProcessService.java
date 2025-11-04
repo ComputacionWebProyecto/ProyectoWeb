@@ -119,4 +119,51 @@ public class ProcessService {
             .toList();
     }
 
+    /**
+     * Reactiva un proceso que fue marcado como inactivo mediante soft delete.
+     *
+     * Este método permite recuperar procesos eliminados cambiando su estado
+     * de 'inactive' a 'active'. El proceso y todos sus elementos asociados
+     * volverán a ser visibles en el sistema.
+     *
+     * El método busca el proceso por id sin importar su estado (activo o inactivo)
+     * usando el repositorio directamente para evitar el filtro @Where.
+     *
+     * @param id Identificador del proceso a reactivar
+     * @return ProcessDTO del proceso reactivado
+     * @throws EntityNotFoundException si el proceso no existe
+     */
+    public ProcessDTO reactivateProcess(Long id) {
+        Process process = processRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
+
+        process.setStatus("active");
+        process = processRepository.save(process);
+
+        System.out.println("Proceso reactivado: ID=" + id + ", Name=" + process.getName());
+
+        return modelMapper.map(process, ProcessDTO.class);
+    }
+
+    /**
+     * Obtiene todos los procesos inactivos de una empresa específica.
+     *
+     * Este método permite visualizar procesos que fueron eliminados mediante
+     * soft delete para decidir cuáles reactivar. Utiliza una query personalizada
+     * que ignora el filtro @Where(clause = "status = 'active'") de la entidad.
+     *
+     * @param companyId Identificador de la empresa
+     * @return Lista de ProcessDTO de procesos inactivos
+     */
+    public List<ProcessDTO> getInactiveProcessesByCompany(Long companyId) {
+        List<Process> processes = processRepository.findByCompanyIdAndStatus(companyId, "inactive");
+
+        System.out.println("Procesos inactivos encontrados: " + processes.size());
+        processes.forEach(p -> System.out.println("  - ID: " + p.getId() + ", Name: " + p.getName()));
+
+        return processes.stream()
+                .map(process -> modelMapper.map(process, ProcessDTO.class))
+                .toList();
+    }
+
 }

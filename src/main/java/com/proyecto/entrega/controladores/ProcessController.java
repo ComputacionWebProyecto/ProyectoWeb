@@ -58,4 +58,36 @@ public class ProcessController {
         return ResponseEntity.ok(summaries);
     }
 
+    /**
+     * Reactiva un proceso que fue marcado como inactivo mediante soft delete.
+     *
+     * Este endpoint permite recuperar procesos eliminados cambiando su estado
+     * de 'inactive' a 'active', haciéndolos visibles nuevamente en el sistema.
+     *
+     * Endpoint: PUT /api/process/{id}/reactivate
+     *
+     * @param id Identificador del proceso a reactivar
+     * @return ProcessDTO del proceso reactivado
+     */
+    @PutMapping(value = "/{id}/reactivate")
+    public ProcessDTO reactivateProcess(@PathVariable Long id) {
+        return processService.reactivateProcess(id);
+    }
+
+    /**
+     * Obtiene todos los procesos inactivos de una empresa.
+     *
+     * Este endpoint permite visualizar procesos eliminados mediante soft delete
+     * para decidir cuáles reactivar.
+     *
+     * Endpoint: GET /api/process/company/{companyId}/inactive
+     *
+     * @param companyId Identificador de la empresa
+     * @return Lista de procesos inactivos
+     */
+    @GetMapping(value = "/company/{companyId}/inactive")
+    public List<ProcessDTO> getInactiveProcessesByCompany(@PathVariable Long companyId) {
+        return processService.getInactiveProcessesByCompany(companyId);
+    }
+
 }

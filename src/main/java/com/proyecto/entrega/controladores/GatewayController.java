@@ -48,4 +48,53 @@ public class GatewayController {
         return gatewayService.findGateways();
     }
 
+    /**
+     * Obtiene todos los gateways de un proceso específico.
+     *
+     * Este endpoint permite filtrar gateways por el proceso al que pertenecen,
+     * facilitando la visualización de elementos específicos de cada proceso.
+     * Solo retorna gateways con status='active'.
+     *
+     * Endpoint: GET /api/gateway/process/{processId}
+     *
+     * @param processId Identificador del proceso
+     * @return Lista de gateways activos del proceso
+     */
+    @GetMapping(value = "/process/{processId}")
+    public List<GatewayDTO> getGatewaysByProcess(@PathVariable Long processId) {
+        return gatewayService.findGatewaysByProcess(processId);
+    }
+
+    /**
+     * Obtiene todos los gateways inactivos de un proceso específico.
+     *
+     * Este endpoint permite visualizar gateways eliminados mediante soft delete
+     * de un proceso específico, para decidir cuáles reactivar.
+     *
+     * Endpoint: GET /api/gateway/process/{processId}/inactive
+     *
+     * @param processId Identificador del proceso
+     * @return Lista de gateways inactivos del proceso
+     */
+    @GetMapping(value = "/process/{processId}/inactive")
+    public List<GatewayDTO> getInactiveGatewaysByProcess(@PathVariable Long processId) {
+        return gatewayService.findInactiveGatewaysByProcess(processId);
+    }
+
+    /**
+     * Reactiva un gateway que fue marcado como inactivo mediante soft delete.
+     *
+     * Este endpoint permite recuperar gateways eliminados cambiando su estado
+     * de 'inactive' a 'active', haciéndolos visibles nuevamente en el proceso.
+     *
+     * Endpoint: PUT /api/gateway/{id}/reactivate
+     *
+     * @param id Identificador del gateway a reactivar
+     * @return GatewayDTO del gateway reactivado
+     */
+    @PutMapping(value = "/{id}/reactivate")
+    public GatewayDTO reactivateGateway(@PathVariable Long id) {
+        return gatewayService.reactivateGateway(id);
+    }
+
 }
