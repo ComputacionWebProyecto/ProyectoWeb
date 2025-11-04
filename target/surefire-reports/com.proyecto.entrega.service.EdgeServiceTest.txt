@@ -1,4 +1,68 @@
 -------------------------------------------------------------------------------
 Test set: com.proyecto.entrega.service.EdgeServiceTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.078 s -- in com.proyecto.entrega.service.EdgeServiceTest
+Tests run: 11, Failures: 3, Errors: 2, Skipped: 0, Time elapsed: 2.398 s <<< FAILURE! -- in com.proyecto.entrega.service.EdgeServiceTest
+com.proyecto.entrega.service.EdgeServiceTest.createEdge_processNoExiste_lanzaEntityNotFound -- Time elapsed: 2.195 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  jakarta.persistence.EntityNotFoundException
+but was:
+  java.lang.NullPointerException: Cannot invoke "com.proyecto.entrega.service.ProcessService.findProcessEntity(java.lang.Long)" because "this.processService" is null
+	at com.proyecto.entrega.service.EdgeService.createEdge(EdgeService.java:35)
+	at com.proyecto.entrega.service.EdgeServiceTest.lambda$createEdge_processNoExiste_lanzaEntityNotFound$0(EdgeServiceTest.java:104)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(80 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.proyecto.entrega.service.EdgeServiceTest.createEdge_processNoExiste_lanzaEntityNotFound(EdgeServiceTest.java:105)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.proyecto.entrega.service.EdgeServiceTest.createEdge_destinyNoExiste_lanzaEntityNotFound -- Time elapsed: 0.010 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  jakarta.persistence.EntityNotFoundException
+but was:
+  java.lang.NullPointerException: Cannot invoke "com.proyecto.entrega.service.ProcessService.findProcessEntity(java.lang.Long)" because "this.processService" is null
+	at com.proyecto.entrega.service.EdgeService.createEdge(EdgeService.java:35)
+	at com.proyecto.entrega.service.EdgeServiceTest.lambda$createEdge_destinyNoExiste_lanzaEntityNotFound$2(EdgeServiceTest.java:136)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(80 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.proyecto.entrega.service.EdgeServiceTest.createEdge_destinyNoExiste_lanzaEntityNotFound(EdgeServiceTest.java:137)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.proyecto.entrega.service.EdgeServiceTest.createEdge_sourceNoExiste_lanzaEntityNotFound -- Time elapsed: 0.009 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  jakarta.persistence.EntityNotFoundException
+but was:
+  java.lang.NullPointerException: Cannot invoke "com.proyecto.entrega.service.ProcessService.findProcessEntity(java.lang.Long)" because "this.processService" is null
+	at com.proyecto.entrega.service.EdgeService.createEdge(EdgeService.java:35)
+	at com.proyecto.entrega.service.EdgeServiceTest.lambda$createEdge_sourceNoExiste_lanzaEntityNotFound$1(EdgeServiceTest.java:119)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(80 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.proyecto.entrega.service.EdgeServiceTest.createEdge_sourceNoExiste_lanzaEntityNotFound(EdgeServiceTest.java:120)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.proyecto.entrega.service.EdgeServiceTest.createEdge_ok -- Time elapsed: 0.017 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.proyecto.entrega.service.ProcessService.findProcessEntity(java.lang.Long)" because "this.processService" is null
+	at com.proyecto.entrega.service.EdgeService.createEdge(EdgeService.java:35)
+	at com.proyecto.entrega.service.EdgeServiceTest.createEdge_ok(EdgeServiceTest.java:81)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.proyecto.entrega.service.EdgeServiceTest.updateEdge_ok -- Time elapsed: 0.007 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.proyecto.entrega.service.ProcessService.findProcessEntity(java.lang.Long)" because "this.processService" is null
+	at com.proyecto.entrega.service.EdgeService.updateEdge(EdgeService.java:56)
+	at com.proyecto.entrega.service.EdgeServiceTest.updateEdge_ok(EdgeServiceTest.java:165)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

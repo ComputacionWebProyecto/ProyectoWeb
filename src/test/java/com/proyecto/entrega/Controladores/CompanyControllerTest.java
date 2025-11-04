@@ -48,6 +48,7 @@ class CompanyControllerTest {
         dto.setNit(900123456L);
         dto.setName("Acme Inc.");
         dto.setCorreoContacto("contacto@acme.com");
+        dto.setStatus("active");
 
         Mockito.when(companyService.findCompany(1L)).thenReturn(dto);
 
@@ -56,15 +57,18 @@ class CompanyControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.NIT").value(900123456))
                 .andExpect(jsonPath("$.name").value("Acme Inc."))
-                .andExpect(jsonPath("$.correoContacto").value("contacto@acme.com"));
+                .andExpect(jsonPath("$.correoContacto").value("contacto@acme.com"))
+                .andExpect(jsonPath("$.status").value("active"));
     }
 
     @Test
     void getCompany_list_returnsOkWithArray() throws Exception {
-        CompanyDTO a = new CompanyDTO(1L, 123L, "A", "a@co.com");
-        CompanyDTO b = new CompanyDTO(2L, 456L, "B", "b@co.com");
+        CompanyDTO a = new CompanyDTO();
+        a.setId(1L); a.setNit(123L); a.setName("A"); a.setCorreoContacto("a@co.com"); a.setStatus("active");
+        CompanyDTO b = new CompanyDTO();
+        b.setId(2L); b.setNit(456L); b.setName("B"); b.setCorreoContacto("b@co.com"); b.setStatus("inactive");
 
-        Mockito.when(companyService.findCompany()).thenReturn(List.of(a, b));
+        Mockito.when(companyService.findCompanies()).thenReturn(List.of(a, b));
 
         mockMvc.perform(get("/api/company"))
                 .andExpect(status().isOk())
@@ -72,10 +76,12 @@ class CompanyControllerTest {
                 .andExpect(jsonPath("$[0].NIT").value(123))
                 .andExpect(jsonPath("$[0].name").value("A"))
                 .andExpect(jsonPath("$[0].correoContacto").value("a@co.com"))
+                .andExpect(jsonPath("$[0].status").value("active"))
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].NIT").value(456))
                 .andExpect(jsonPath("$[1].name").value("B"))
-                .andExpect(jsonPath("$[1].correoContacto").value("b@co.com"));
+                .andExpect(jsonPath("$[1].correoContacto").value("b@co.com"))
+                .andExpect(jsonPath("$[1].status").value("inactive"));
     }
 
     @Test
@@ -84,6 +90,7 @@ class CompanyControllerTest {
         payload.setNit(900777888L);
         payload.setName("Nueva Co");
         payload.setCorreoContacto("hola@nueva.co");
+        payload.setStatus("active"); // opcional; el service lo setea si viene null
 
         mockMvc.perform(post("/api/company")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -100,6 +107,7 @@ class CompanyControllerTest {
         payload.setNit(999L);
         payload.setName("Editada");
         payload.setCorreoContacto("editada@co.com");
+        payload.setStatus("active");
 
         mockMvc.perform(put("/api/company")
                         .contentType(MediaType.APPLICATION_JSON)

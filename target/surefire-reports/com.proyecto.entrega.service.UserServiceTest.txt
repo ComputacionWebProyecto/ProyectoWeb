@@ -1,4 +1,36 @@
 -------------------------------------------------------------------------------
 Test set: com.proyecto.entrega.service.UserServiceTest
 -------------------------------------------------------------------------------
-Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.081 s -- in com.proyecto.entrega.service.UserServiceTest
+Tests run: 13, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 2.381 s <<< FAILURE! -- in com.proyecto.entrega.service.UserServiceTest
+com.proyecto.entrega.service.UserServiceTest.updateUser_ok_actualizaDatos_y_relaciones -- Time elapsed: 0.043 s <<< FAILURE!
+Wanted but not invoked:
+modelMapper.map(
+    com.proyecto.entrega.dto.UserDTO@74a85515,
+    same(com.proyecto.entrega.entity.User@4a2e1e52)
+);
+-> at org.modelmapper.ModelMapper.map(ModelMapper.java:445)
+
+However, there was exactly 1 interaction with this mock:
+modelMapper.map(
+    com.proyecto.entrega.entity.User@5238896f,
+    class com.proyecto.entrega.dto.UserDTO
+);
+-> at com.proyecto.entrega.service.UserService.updateUser(UserService.java:76)
+
+
+	at org.modelmapper.ModelMapper.map(ModelMapper.java:445)
+	at com.proyecto.entrega.service.UserServiceTest.updateUser_ok_actualizaDatos_y_relaciones(UserServiceTest.java:151)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.proyecto.entrega.service.UserServiceTest.createUser_ok_statusPorDefectoActive_y_relacionesSeteadas -- Time elapsed: 0.026 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "active"
+ but was: null
+	at com.proyecto.entrega.service.UserServiceTest.createUser_ok_statusPorDefectoActive_y_relacionesSeteadas(UserServiceTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

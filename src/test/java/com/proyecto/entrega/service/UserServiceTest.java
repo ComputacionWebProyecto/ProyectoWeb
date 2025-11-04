@@ -2,6 +2,8 @@ package com.proyecto.entrega.service;
 
 import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
+import com.proyecto.entrega.entity.Company;
+import com.proyecto.entrega.entity.Role;
 import com.proyecto.entrega.entity.User;
 import com.proyecto.entrega.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,155 +25,169 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    @Mock
-    UserRepository userRepository;
+    @Mock UserRepository userRepository;
+    @Mock CompanyService companyService; // ← carga la empresa por id
+    @Mock RoleService roleService;       // ← carga el rol por id
+    @Mock ModelMapper modelMapper;
 
-    @Mock
-    ModelMapper modelMapper;
+    @InjectMocks UserService userService;
 
-    @InjectMocks
-    UserService userService;
+    // ---------- helpers ----------
+    private Company comp(Long id){ Company c=new Company(); c.setId(id); return c; }
+    private Role role(Long id){ Role r=new Role(); r.setId(id); return r; }
+
+    private User user(Long id, String nombre, String correo, String pass, String status, Company c, Role r){
+        User u = new User();
+        u.setId(id); u.setNombre(nombre); u.setCorreo(correo); u.setContrasena(pass); u.setStatus(status);
+        u.setCompany(c); u.setRole(r);
+        return u;
+    }
+
+    private UserDTO dto(Long id, String nombre, String correo, String pass, String status, Long companyId, Long roleId){
+        UserDTO d = new UserDTO();
+        d.setId(id); d.setNombre(nombre); d.setCorreo(correo); d.setContrasena(pass); d.setStatus(status);
+        d.setCompanyId(companyId); d.setRoleId(roleId);
+        return d;
+    }
+
+    private UserSafeDTO safe(Long id, String nombre, String correo, String status, Long companyId, Long roleId){
+        UserSafeDTO s = new UserSafeDTO();
+        s.setId(id); s.setNombre(nombre); s.setCorreo(correo); s.setStatus(status);
+        s.setCompanyId(companyId); s.setRoleId(roleId);
+        return s;
+    }
 
     // ---------- createUser ----------
     @Test
-    void createUser_ok() {
-        UserDTO inDto = new UserDTO(null, "Juan", "juan@acme.com", "secreta", 10L, 20L);
-        User entityBefore = new User(null, "Juan", "juan@acme.com", "secreta", "active", null, null);
-        User entitySaved  = new User(1L,   "Juan", "juan@acme.com", "secreta", "active", null, null);
-        UserDTO outDto    = new UserDTO(1L, "Juan", "juan@acme.com", "secreta", 10L, 20L);
+    void createUser_ok_statusPorDefectoActive_y_relacionesSeteadas() {
+        UserDTO inDto = dto(null, "Juan", "juan@acme.com", "secreta", null, 10L, 20L);
 
-        when(modelMapper.map(inDto, User.class)).thenReturn(entityBefore);
-        when(userRepository.save(entityBefore)).thenReturn(entitySaved);
-        when(modelMapper.map(entitySaved, UserDTO.class)).thenReturn(outDto);
+        Company c = comp(10L);
+        Role r = role(20L);
+
+        User mapped   = user(null, "Juan", "juan@acme.com", "secreta", null, null, null); // mapper pone lo básico
+        User persisted= user(1L, "Juan", "juan@acme.com", "secreta", "active", c, r);
+        UserDTO outDto= dto(1L, "Juan", "juan@acme.com", "secreta", "active", 10L, 20L);
+
+        when(modelMapper.map(inDto, User.class)).thenReturn(mapped);
+        when(companyService.findCompanyEntity(10L)).thenReturn(c);
+        when(roleService.findRoleEntity(20L)).thenReturn(r);
+        when(userRepository.save(any(User.class))).thenReturn(persisted);
+        when(modelMapper.map(persisted, UserDTO.class)).thenReturn(outDto);
 
         UserDTO result = userService.createUser(inDto);
 
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getNombre()).isEqualTo("Juan");
-        assertThat(result.getCorreo()).isEqualTo("juan@acme.com");
-        // createUser retorna UserDTO (incluye contraseña)
-        assertThat(result.getContrasena()).isEqualTo("secreta");
-        verify(userRepository).save(entityBefore);
+        assertThat(result.getStatus()).isEqualTo("active");
+        assertThat(result.getContrasena()).isEqualTo("secreta"); // create devuelve DTO completo
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(captor.capture());
+        User toSave = captor.getValue();
+        assertThat(toSave.getStatus()).isEqualTo("active");
+        assertThat(toSave.getCompany()).isSameAs(c);
+        assertThat(toSave.getRole()).isSameAs(r);
     }
 
     @Test
     void createUser_missingCompany_throwsIAE() {
-        UserDTO inDto = new UserDTO(null, "Juan", "juan@acme.com", "secreta", null, 20L);
+        UserDTO inDto = dto(null, "Juan", "juan@acme.com", "secreta", null, null, 20L);
 
         assertThatThrownBy(() -> userService.createUser(inDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Company ID");
 
-        verifyNoInteractions(userRepository);
+        verifyNoInteractions(userRepository, companyService, roleService, modelMapper);
     }
 
     @Test
     void createUser_missingRole_throwsIAE() {
-        UserDTO inDto = new UserDTO(null, "Juan", "juan@acme.com", "secreta", 10L, null);
+        UserDTO inDto = dto(null, "Juan", "juan@acme.com", "secreta", null, 10L, null);
 
         assertThatThrownBy(() -> userService.createUser(inDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Role ID");
 
-        verifyNoInteractions(userRepository);
+        verifyNoInteractions(userRepository, companyService, roleService, modelMapper);
     }
 
     // ---------- updateUser ----------
     @Test
-    void updateUser_ok() {
-        // DTO de entrada (incluye contraseña)
-        UserDTO inDto = new UserDTO(10L, "Nuevo Nombre", "nuevo@correo.com", "secreta", 11L, 22L);
+    void updateUser_ok_actualizaDatos_y_relaciones() {
+        UserDTO inDto = dto(10L, "Nuevo Nombre", "nuevo@correo.com", "secreta", null, 11L, 22L);
 
-        // Entity existente en BD
-        User existing = new User();
-        existing.setId(10L);
-        existing.setNombre("Viejo");
-        existing.setCorreo("viejo@correo.com");
-        existing.setContrasena("old");
-        existing.setStatus("active");
+        User existing = user(10L, "Viejo", "viejo@correo.com", "old", "active", null, null);
+        Company c = comp(11L);
+        Role r = role(22L);
+        User saved = user(10L, "Nuevo Nombre", "nuevo@correo.com", "secreta", "active", c, r);
+        UserDTO outDto = dto(10L, "Nuevo Nombre", "nuevo@correo.com", "secreta", "active", 11L, 22L);
 
-        // “Guardado” tras aplicar cambios
-        User saved = new User();
-        saved.setId(10L);
-        saved.setNombre("Nuevo Nombre");
-        saved.setCorreo("nuevo@correo.com");
-        saved.setContrasena("secreta");
-        saved.setStatus("active");
-
-        // DTO de salida que devuelve el service
-        UserDTO outDto = new UserDTO(10L, "Nuevo Nombre", "nuevo@correo.com", "secreta", 11L, 22L);
-
-        // Stubs
         when(userRepository.findById(10L)).thenReturn(Optional.of(existing));
+        when(companyService.findCompanyEntity(11L)).thenReturn(c);
+        when(roleService.findRoleEntity(22L)).thenReturn(r);
 
-        // IMPORTANTÍSIMO: stub del map(source DTO -> destination entity existente)
-        // ModelMapper.map(source, destination) (la sobrecarga con destino) es void.
+        // ModelMapper.map(sourceDTO, destinationEntity) (void)
         doAnswer(inv -> {
             UserDTO src = inv.getArgument(0);
             User dest  = inv.getArgument(1);
-            // Simulamos que ModelMapper copia campos del DTO al entity existente
             dest.setNombre(src.getNombre());
             dest.setCorreo(src.getCorreo());
             dest.setContrasena(src.getContrasena());
-            return null; // porque esta sobrecarga es void
+            return null;
         }).when(modelMapper).map(eq(inDto), same(existing));
 
         when(userRepository.save(existing)).thenReturn(saved);
         when(modelMapper.map(saved, UserDTO.class)).thenReturn(outDto);
 
-        // Act
         UserDTO result = userService.updateUser(inDto);
 
-        // Assert
-        assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(10L);
-        assertThat(result.getNombre()).isEqualTo("Nuevo Nombre");
-        assertThat(result.getCorreo()).isEqualTo("nuevo@correo.com");
+        assertThat(existing.getNombre()).isEqualTo("Nuevo Nombre");
+        assertThat(existing.getCorreo()).isEqualTo("nuevo@correo.com");
+        assertThat(existing.getContrasena()).isEqualTo("secreta");
+        assertThat(existing.getCompany()).isSameAs(c);
+        assertThat(existing.getRole()).isSameAs(r);
 
-        // Verificaciones mínimas
-        verify(userRepository).findById(10L);
-        verify(modelMapper).map(eq(inDto), same(existing)); // dto -> entity existente
+        verify(modelMapper).map(eq(inDto), same(existing));
         verify(userRepository).save(existing);
-        verify(modelMapper).map(saved, UserDTO.class);      // entity -> dto (respuesta)
     }
-
 
     @Test
     void updateUser_missingId_throwsIAE() {
-        UserDTO inDto = new UserDTO(null, "X", "x@x.com", "p", 1L, 2L);
+        UserDTO inDto = dto(null, "X", "x@x.com", "p", null, 1L, 2L);
 
         assertThatThrownBy(() -> userService.updateUser(inDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("User ID");
 
-        verifyNoInteractions(userRepository);
+        verifyNoInteractions(userRepository, companyService, roleService, modelMapper);
     }
 
     @Test
     void updateUser_missingCompany_throwsIAE() {
-        UserDTO inDto = new UserDTO(5L, "X", "x@x.com", "p", null, 2L);
+        UserDTO inDto = dto(5L, "X", "x@x.com", "p", null, null, 2L);
 
         assertThatThrownBy(() -> userService.updateUser(inDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Company ID");
 
-        verifyNoInteractions(userRepository);
+        verifyNoInteractions(companyService, roleService);
     }
 
     @Test
     void updateUser_missingRole_throwsIAE() {
-        UserDTO inDto = new UserDTO(5L, "X", "x@x.com", "p", 1L, null);
+        UserDTO inDto = dto(5L, "X", "x@x.com", "p", null, 1L, null);
 
         assertThatThrownBy(() -> userService.updateUser(inDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Role ID");
 
-        verifyNoInteractions(userRepository);
+        verifyNoInteractions(roleService);
     }
 
     @Test
     void updateUser_notFound_throwsEntityNotFound() {
-        UserDTO inDto = new UserDTO(99L, "X", "x@x.com", "p", 1L, 2L);
+        UserDTO inDto = dto(99L, "X", "x@x.com", "p", null, 1L, 2L);
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateUser(inDto))
@@ -182,11 +198,11 @@ class UserServiceTest {
         verifyNoMoreInteractions(userRepository);
     }
 
-    // ---------- findUser ----------
+    // ---------- findUser (SAFE) ----------
     @Test
-    void findUser_found_returnsSafeDTO() {
-        User entity = new User(2L, "Ana", "ana@acme.com", "topsecret", "active", null, null);
-        UserSafeDTO safe = new UserSafeDTO(2L, "Ana", "ana@acme.com", 11L, 22L);
+    void findUser_found_returnsSafeDTO_sinContrasena() {
+        User entity = user(2L, "Ana", "ana@acme.com", "topsecret", "active", comp(11L), role(22L));
+        UserSafeDTO safe = safe(2L, "Ana", "ana@acme.com", "active", 11L, 22L);
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(entity));
         when(modelMapper.map(entity, UserSafeDTO.class)).thenReturn(safe);
@@ -196,7 +212,7 @@ class UserServiceTest {
         assertThat(result.getId()).isEqualTo(2L);
         assertThat(result.getNombre()).isEqualTo("Ana");
         assertThat(result.getCorreo()).isEqualTo("ana@acme.com");
-        // No hay contraseña en UserSafeDTO
+        // No hay contraseña en el SAFE DTO
         verify(userRepository).findById(2L);
     }
 
@@ -212,10 +228,10 @@ class UserServiceTest {
         verifyNoMoreInteractions(userRepository);
     }
 
-    // ---------- deleteUser (soft delete) ----------
+    // ---------- deleteUser (soft) ----------
     @Test
     void deleteUser_softDelete_setsInactiveAndSaves() {
-        User entity = new User(7L, "Luis", "luis@acme.com", "pass", "active", null, null);
+        User entity = user(7L, "Luis", "luis@acme.com", "pass", "active", null, null);
         when(userRepository.findById(7L)).thenReturn(Optional.of(entity));
         when(userRepository.save(any(User.class))).thenReturn(entity);
 
@@ -240,19 +256,20 @@ class UserServiceTest {
         verifyNoMoreInteractions(userRepository);
     }
 
-    // ---------- findAllUsers ----------
+    // ---------- findAllUsers (SAFE) ----------
     @Test
-    void findAllUsers_ok() {
-        User u = new User(1L, "Pepe", "pepe@acme.com", "p", "active", null, null);
+    void findAllUsers_ok_returnsSafeDTOs() {
+        User u = user(1L, "Pepe", "pepe@acme.com", "p", "active", comp(50L), role(60L));
         when(userRepository.findAll()).thenReturn(List.of(u));
 
-        UserSafeDTO safe = new UserSafeDTO(1L, "Pepe", "pepe@acme.com", 50L, 60L);
+        UserSafeDTO safe = safe(1L, "Pepe", "pepe@acme.com", "active", 50L, 60L);
         when(modelMapper.map(u, UserSafeDTO.class)).thenReturn(safe);
 
         List<UserSafeDTO> result = userService.findAllUsers();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getNombre()).isEqualTo("Pepe");
+        assertThat(result.get(0).getStatus()).isEqualTo("active");
         verify(userRepository).findAll();
         verify(modelMapper, atLeastOnce()).map(any(User.class), eq(UserSafeDTO.class));
     }
