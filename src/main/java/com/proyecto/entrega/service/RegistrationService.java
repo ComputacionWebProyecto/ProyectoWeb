@@ -3,7 +3,6 @@ package com.proyecto.entrega.service;
 import org.springframework.stereotype.Service;
 
 import com.proyecto.entrega.dto.CompanyDTO;
-import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.dto.UserDTO;
 
@@ -15,14 +14,12 @@ public class RegistrationService {
     private final CompanyService companyService;
     private final UserService userService;
     private final RoleService roleService;
-    private final ProcessService processService;
 
     public RegistrationService(CompanyService companyService, UserService userService,
-                               RoleService roleService, ProcessService processService) {
+                               RoleService roleService) {
         this.companyService = companyService;
         this.userService = userService;
         this.roleService = roleService;
-        this.processService = processService;
     }
 
     @Transactional
@@ -31,11 +28,9 @@ public class RegistrationService {
         CompanyDTO createdCompany = companyService.createCompany(companyDTO);
 
         // 2. Crear proceso inicial
-        ProcessDTO process = new ProcessDTO();
-        process.setName("Proceso inicial");
-        process.setDescription("Primer proceso");
-        process.setCompanyId(createdCompany.getId());
-        processService.createProcess(process);
+        // ELIMINADO: Ya no se crea proceso automáticamente
+        // Los usuarios deben crear sus propios procesos desde el frontend
+
 
         // 3. Crear rol admin
         RoleDTO role = new RoleDTO();

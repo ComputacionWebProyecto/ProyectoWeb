@@ -19,8 +19,10 @@ public class GatewayDTO {
     private Double x;
     private Double y;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    // processId debe estar disponible en lectura Y escritura
+    // para que el frontend pueda filtrar gateways por proceso
     private Long processId;
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private ProcessDTO process;
 

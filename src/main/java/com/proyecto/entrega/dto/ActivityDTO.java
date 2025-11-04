@@ -26,9 +26,9 @@ public class ActivityDTO {
     private Double height;
     private String status;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    // processId y roleId deben estar disponibles en lectura Y escritura
+    // para que el frontend pueda filtrar y gestionar correctamente
     private Long processId;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long roleId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
