@@ -43,7 +43,7 @@ public class GatewayService {
 
         gateway = gatewayRepository.save(gateway);
         
-        System.out.println("✅ Gateway guardado en BD: " + gateway.getId() + 
+        System.out.println("Gateway guardado en BD: " + gateway.getId() + 
                           ", tipo: " + gateway.getType() + 
                           ", x: " + gateway.getX() + 
                           ", y: " + gateway.getY());
