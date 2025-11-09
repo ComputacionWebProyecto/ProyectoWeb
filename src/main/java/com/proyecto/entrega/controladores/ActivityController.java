@@ -48,4 +48,53 @@ public class ActivityController {
         return activityService.findActivities();
     }
 
+    /**
+     * Obtiene todas las activities de un proceso específico.
+     *
+     * Este endpoint permite filtrar activities por el proceso al que pertenecen,
+     * facilitando la visualización de elementos específicos de cada proceso.
+     * Solo retorna activities con status='active'.
+     *
+     * Endpoint: GET /api/activity/process/{processId}
+     *
+     * @param processId Identificador del proceso
+     * @return Lista de activities activas del proceso
+     */
+    @GetMapping(value = "/process/{processId}")
+    public List<ActivityDTO> getActivitiesByProcess(@PathVariable Long processId) {
+        return activityService.findActivitiesByProcess(processId);
+    }
+
+    /**
+     * Obtiene todas las activities inactivas de un proceso específico.
+     *
+     * Este endpoint permite visualizar activities eliminadas mediante soft delete
+     * de un proceso específico, para decidir cuáles reactivar.
+     *
+     * Endpoint: GET /api/activity/process/{processId}/inactive
+     *
+     * @param processId Identificador del proceso
+     * @return Lista de activities inactivas del proceso
+     */
+    @GetMapping(value = "/process/{processId}/inactive")
+    public List<ActivityDTO> getInactiveActivitiesByProcess(@PathVariable Long processId) {
+        return activityService.findInactiveActivitiesByProcess(processId);
+    }
+
+    /**
+     * Reactiva una activity que fue marcada como inactiva mediante soft delete.
+     *
+     * Este endpoint permite recuperar activities eliminadas cambiando su estado
+     * de 'inactive' a 'active', haciéndolas visibles nuevamente en el proceso.
+     *
+     * Endpoint: PUT /api/activity/{id}/reactivate
+     *
+     * @param id Identificador de la activity a reactivar
+     * @return ActivityDTO de la activity reactivada
+     */
+    @PutMapping(value = "/{id}/reactivate")
+    public ActivityDTO reactivateActivity(@PathVariable Long id) {
+        return activityService.reactivateActivity(id);
+    }
+
 }
