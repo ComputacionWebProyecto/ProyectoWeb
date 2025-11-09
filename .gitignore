@@ -16,7 +16,7 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
+# Nota: .mvn/wrapper/ NO está ignorado porque es necesario para Maven Wrapper
 
 # Logs
 *.log
