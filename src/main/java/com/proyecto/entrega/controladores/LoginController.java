@@ -6,9 +6,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.proyecto.entrega.dto.AuthorizedDTO;
 import com.proyecto.entrega.dto.LoginDTO;
 import com.proyecto.entrega.service.LoginService;
-import com.proyecto.entrega.dto.UserDTO;
+
 
 @RestController
 @RequestMapping("/api")
@@ -21,8 +23,16 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody LoginDTO request) {
-        UserDTO response = loginService.authenticate(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AuthorizedDTO> login(@RequestBody LoginDTO request) {
+        try {
+            AuthorizedDTO response = loginService.authenticate(request);
+            return ResponseEntity.ok(response);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(500).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(401).build();
+        }
     }
+
+    
 }

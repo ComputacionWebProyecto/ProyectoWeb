@@ -5,6 +5,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -32,6 +33,9 @@ public class UserService {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public UserDTO createUser(UserDTO userDTO) {
         validateCompanyAndRole(userDTO);
 
@@ -46,6 +50,11 @@ public class UserService {
 
         user.setCompany(company);
         user.setRole(role);
+
+        if (userDTO.getContrasena() != null && !userDTO.getContrasena().isBlank()) {
+            String contrasenaEncriptada = passwordEncoder.encode(userDTO.getContrasena());
+            user.setContrasena(contrasenaEncriptada);
+        }
 
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
@@ -69,8 +78,10 @@ public class UserService {
         user.setCorreo(userDTO.getCorreo());
 
         if (userDTO.getContrasena() != null && !userDTO.getContrasena().isBlank()) {
-            user.setContrasena(userDTO.getContrasena());
+            String contrasenaEncriptada = passwordEncoder.encode(userDTO.getContrasena());
+            user.setContrasena(contrasenaEncriptada);
         }
+
 
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
