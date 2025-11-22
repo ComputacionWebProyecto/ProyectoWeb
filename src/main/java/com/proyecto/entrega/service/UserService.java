@@ -82,7 +82,6 @@ public class UserService {
             user.setContrasena(contrasenaEncriptada);
         }
 
-
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
     }
@@ -119,9 +118,24 @@ public class UserService {
                 .toList();
     }
 
+    // ========================================
     // MÉTODOS PARA LOGIN
+    // ========================================
+    
+    // ← AGREGAR ESTE MÉTODO NUEVO ←
+    public User findByEmailEntity(String correo) {
+        User user = userRepository.findByCorreo(correo);
+        if (user == null) {
+            throw new EntityNotFoundException("Usuario con correo " + correo + " no encontrado");
+        }
+        return user;
+    }
+    
     public UserDTO findByEmail(String correo) {
         User user = userRepository.findByCorreo(correo);
+        if (user == null) {
+            throw new EntityNotFoundException("Usuario con correo " + correo + " no encontrado");
+        }
         return modelMapper.map(user, UserDTO.class);
     }
 

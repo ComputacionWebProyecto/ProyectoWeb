@@ -25,25 +25,77 @@ public class JwtFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         System.out.println("JwtFilter - Request: " + method + " " + path);
+        
         if (path.startsWith("/auth/swagger-ui") || path.equals("/auth/swagger-ui.html") || path.equals("/auth/v3/api-docs") || path.startsWith("/auth/v3/api-docs")  || (path.startsWith("/auth/auth")  && !path.startsWith("/auth/auth/renew-token")) ) {
             System.out.println("JwtFilter - Bypassing JWT check for path: " + path);
             filterChain.doFilter(request, response);
             return;
         }
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer")) {
-            String token = authHeader.substring(7);
-            if (!jwtUtil.validateToken(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-            String email = jwtUtil.extractEmail(token);
-            String role = jwtUtil.extractRole(token);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    email, token, java.util.Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Login
+        if (path.equals("/api/login") && method.equals("POST")) {
+            System.out.println("JwtFilter - Ruta pública (Login): " + path);
+            filterChain.doFilter(request, response); 
+            return;
         }
+        
+        // Registro
+        if (path.startsWith("/api/register")) {
+            System.out.println("JwtFilter - Ruta pública (Registro): " + path);
+            filterChain.doFilter(request, response);  
+            return;
+        }
+        
+        // Creación de usuarios
+        if (path.equals("/api/user") && method.equals("POST")) {
+            System.out.println("JwtFilter - Ruta pública (Crear usuario): " + path);
+            filterChain.doFilter(request, response);  
+            return;
+        }
+        
+        // Endpoints de autenticación
+        if (path.startsWith("/api/auth/") && !path.equals("/api/auth/renew-token")) {
+            System.out.println("JwtFilter - Ruta pública (Auth): " + path);
+            filterChain.doFilter(request, response);  
+            return;
+        }
+
+        System.out.println("JwtFilter - Ruta protegida, validando JWT...");
+        
+        String authHeader = request.getHeader("Authorization");
+        
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("JwtFilter - No hay token, acceso denegado");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Token JWT requerido\"}");
+            return;
+        }
+        
+        String token = authHeader.substring(7);
+        
+        if (!jwtUtil.validateToken(token)) {
+            System.out.println("JwtFilter - Token inválido o expirado");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Token inválido o expirado\"}");
+            return;
+        }
+        
+        // Token válido, establecer autenticación
+        String email = jwtUtil.extractEmail(token);
+        String role = jwtUtil.extractRole(token);
+        
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+            email, 
+            token, 
+            java.util.Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+        );
+        
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        System.out.println("JwtFilter - Token válido para: " + email);
+        
+        // Continuar con la petición
         filterChain.doFilter(request, response);
     }
 }
