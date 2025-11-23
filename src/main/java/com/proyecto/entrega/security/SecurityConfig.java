@@ -58,9 +58,6 @@ public class SecurityConfig {
                 // Crear usuario
                 .requestMatchers(HttpMethod.POST, "/api/user").permitAll()
                 
-                // Auth endpoints (excepto renew-token)
-                .requestMatchers("/api/auth/**").permitAll()
-                
                 // Swagger
                 .requestMatchers("/auth/swagger-ui/**").permitAll()
                 .requestMatchers("/auth/swagger-ui.html").permitAll()

@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.proyecto.entrega.dto.UserSafeDTO;
-import com.proyecto.entrega.exception.InvalidTokenException;
 import com.proyecto.entrega.dto.AuthorizedDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -145,16 +144,6 @@ public class JwtUtil {
         }
 
         return new SecretKeySpec(keyBytes, "AES");
-    }
-
-    public UserSafeDTO getUser(Authentication authentication) throws JsonMappingException, JsonProcessingException, InvalidTokenException {
-        
-        String token = authentication.getCredentials().toString();
-        if (!validateToken(token)) {
-            throw new InvalidTokenException("Token inválido o expirado");
-        }
-       
-        return getAuthorized(token).getUser();
     }
     public AuthorizedDTO getAuthorized( String token ) throws JsonMappingException, JsonProcessingException {
         

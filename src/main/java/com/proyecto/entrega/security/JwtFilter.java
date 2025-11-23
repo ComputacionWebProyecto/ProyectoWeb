@@ -52,13 +52,6 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);  
             return;
         }
-        
-        // Endpoints de autenticación
-        if (path.startsWith("/api/auth/") && !path.equals("/api/auth/renew-token")) {
-            System.out.println("JwtFilter - Ruta pública (Auth): " + path);
-            filterChain.doFilter(request, response);  
-            return;
-        }
 
         System.out.println("JwtFilter - Ruta protegida, validando JWT...");
         
