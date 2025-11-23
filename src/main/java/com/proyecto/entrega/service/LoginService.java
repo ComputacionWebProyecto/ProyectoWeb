@@ -57,6 +57,8 @@ public class LoginService {
         userSafe.setNombre(user.getNombre());
         userSafe.setCompanyId(user.getCompany().getId());
         userSafe.setRoleId(user.getRole().getId());
+        userSafe.setCompany(user.getCompany());
+        userSafe.setRole(user.getRole());
         // Agregar otros campos que necesites
         
         // 4. Generar JWT token
