@@ -1,4 +1,20 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
+<<<<<<< HEAD
     "java.compile.nullAnalysis.mode": "automatic"
+=======
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "10.43.102.195",
+            "port": 5432,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "MiProyecto",
+            "username": "usuariodb",
+            "database": "proyecto"
+        }
+    ]
+>>>>>>> seguridad
 }
