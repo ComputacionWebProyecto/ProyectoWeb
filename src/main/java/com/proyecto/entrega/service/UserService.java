@@ -4,16 +4,16 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.entity.Role;
 import com.proyecto.entrega.entity.User;
+import com.proyecto.entrega.exception.DuplicateResourceException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -37,10 +37,18 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public UserDTO createUser(UserDTO userDTO) {
+        // Validación de datos
+        if (userDTO.getNombre() == null || userDTO.getNombre().trim().isEmpty()) {
+            throw new ValidationException("El nombre es requerido");
+        }
+        if (userDTO.getCorreo() == null || userDTO.getCorreo().trim().isEmpty()) {
+            throw new ValidationException("El correo electrónico es requerido");
+        }
+
         validateCompanyAndRole(userDTO);
 
         if (userRepository.existsByCorreo(userDTO.getCorreo())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Correo de usuario ya existe");
+            throw new DuplicateResourceException("Usuario", "correo", userDTO.getCorreo());
         }
 
         User user = modelMapper.map(userDTO, User.class);
@@ -121,7 +129,7 @@ public class UserService {
     // ========================================
     // MÉTODOS PARA LOGIN
     // ========================================
-    
+
     // ← AGREGAR ESTE MÉTODO NUEVO ←
     public User findByEmailEntity(String correo) {
         User user = userRepository.findByCorreo(correo);
@@ -130,7 +138,7 @@ public class UserService {
         }
         return user;
     }
-    
+
     public UserDTO findByEmail(String correo) {
         User user = userRepository.findByCorreo(correo);
         if (user == null) {
