@@ -11,6 +11,7 @@ import com.proyecto.entrega.dto.LoginDTO;
 import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.exception.InvalidCredentialsException;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
 import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.security.JwtUtil;
 
@@ -43,7 +44,12 @@ public class LoginService {
         }
 
         // 1. Buscar usuario por correo
-        UserDTO user = userService.findByEmail(loginDTO.getCorreo());
+        UserDTO user;
+        try {
+            user = userService.findByEmail(loginDTO.getCorreo());
+        } catch (ResourceNotFoundException e) {
+            throw new InvalidCredentialsException("Credenciales inválidas");
+        }
 
         // 2. Verificar contraseña con BCrypt
         boolean contrasenaCorrecta = passwordEncoder.matches(
