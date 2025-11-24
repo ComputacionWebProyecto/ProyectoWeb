@@ -116,7 +116,7 @@ public class JwtUtil {
             throws JsonMappingException, JsonProcessingException {
 
         if (authentication == null || authentication.getPrincipal() == null) {
-            throw new IllegalArgumentException("Authentication inválido");
+            throw new IllegalArgumentException("Autenticación inválida");
         }
 
         String token = authentication.getCredentials().toString();

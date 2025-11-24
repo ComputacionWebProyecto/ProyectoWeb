@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.ActivityDTO;
 import com.proyecto.entrega.entity.Activity;
 import com.proyecto.entrega.entity.Edge;
 import com.proyecto.entrega.entity.Process;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.ActivityRepository;
 import com.proyecto.entrega.repository.EdgeRepository;
 
@@ -32,7 +34,7 @@ public class ActivityService {
 
     public ActivityDTO createActivity(ActivityDTO activityDTO) {
         if (activityDTO.getProcessId() == null) {
-            throw new IllegalArgumentException("ProcessId is required");
+            throw new ValidationException("El ID del proceso es requerido");
         }
 
         // Validamos que el proceso exista
@@ -47,18 +49,17 @@ public class ActivityService {
 
     public ActivityDTO updateActivity(ActivityDTO activityDTO) {
         if (activityDTO.getId() == null) {
-            throw new IllegalArgumentException("ActivityId is required for update");
+            throw new ValidationException("El ID de la actividad es requerido para actualizar");
         }
         if (activityDTO.getProcessId() == null) {
-            throw new IllegalArgumentException("ProcessId is required for update");
+            throw new ValidationException("El ID del proceso es requerido para actualizar");
         }
 
         // Validamos que el proceso exista
         Process process = processService.findProcessEntity(activityDTO.getProcessId());
 
-
         Activity activity = activityRepository.findById(activityDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Activity " + activityDTO.getId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Actividad", "id", activityDTO.getId()));
 
         // Actualizamos los campos
         activity.setName(activityDTO.getName());
@@ -75,18 +76,18 @@ public class ActivityService {
 
     public ActivityDTO findActivity(Long id) {
         Activity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Actividad", "id", id));
         return modelMapper.map(activity, ActivityDTO.class);
     }
 
     public Activity findActivityEntity(Long id) {
         return activityRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Actividad", "id", id));
     }
 
     public void deleteActivity(Long id) {
         Activity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Actividad", "id", id));
 
         // Eliminar edges conectados en cascada (soft delete)
         List<Edge> connectedEdges = edgeRepository.findByActivityId(id);
@@ -113,7 +114,8 @@ public class ActivityService {
      *
      * Este método permite filtrar activities por el proceso al que pertenecen,
      * facilitando la visualización de elementos específicos de cada proceso.
-     * Solo retorna activities con status='active' debido al filtro @Where de la entidad.
+     * Solo retorna activities con status='active' debido al filtro @Where de la
+     * entidad.
      *
      * @param processId Identificador del proceso
      * @return Lista de ActivityDTO de activities activas del proceso
@@ -164,7 +166,7 @@ public class ActivityService {
      */
     public ActivityDTO reactivateActivity(Long id) {
         Activity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Activity " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Actividad", "id", id));
 
         activity.setStatus("active");
         activity = activityRepository.save(activity);

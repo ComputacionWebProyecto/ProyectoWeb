@@ -10,6 +10,8 @@ import com.proyecto.entrega.dto.GatewayDTO;
 import com.proyecto.entrega.entity.Edge;
 import com.proyecto.entrega.entity.Gateway;
 import com.proyecto.entrega.entity.Process;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.EdgeRepository;
 import com.proyecto.entrega.repository.GatewayRepository;
 
@@ -47,25 +49,24 @@ public class GatewayService {
         gateway.setY(gatewayDTO.getY());
 
         gateway = gatewayRepository.save(gateway);
-        
-        System.out.println("Gateway guardado en BD: " + gateway.getId() + 
-                          ", tipo: " + gateway.getType() + 
-                          ", x: " + gateway.getX() + 
-                          ", y: " + gateway.getY());
-        
+
+        System.out.println("Gateway guardado en BD: " + gateway.getId() +
+                ", tipo: " + gateway.getType() +
+                ", x: " + gateway.getX() +
+                ", y: " + gateway.getY());
+
         return modelMapper.map(gateway, GatewayDTO.class);
     }
 
     // Actualizar Gateway
     public GatewayDTO updateGateway(GatewayDTO gatewayDTO) {
         if (gatewayDTO.getId() == null) {
-            throw new IllegalArgumentException("El id del Gateway no puede ser null para actualizar");
+            throw new ValidationException("El ID del gateway es requerido para actualizar");
         }
 
         // Verificar que el gateway exista
         Gateway existingGateway = gatewayRepository.findById(gatewayDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Gateway " + gatewayDTO.getId() + " not found"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Gateway", "id", gatewayDTO.getId()));
 
         existingGateway.setType(gatewayDTO.getType());
         existingGateway.setX(gatewayDTO.getX());
@@ -77,30 +78,30 @@ public class GatewayService {
         }
 
         existingGateway = gatewayRepository.save(existingGateway);
-        
-        System.out.println("Gateway actualizado: " + existingGateway.getId() + 
-                          ", x: " + existingGateway.getX() + 
-                          ", y: " + existingGateway.getY());
-        
+
+        System.out.println("Gateway actualizado: " + existingGateway.getId() +
+                ", x: " + existingGateway.getX() +
+                ", y: " + existingGateway.getY());
+
         return modelMapper.map(existingGateway, GatewayDTO.class);
     }
 
     // Buscar Gateway por ID
     public GatewayDTO findGateway(Long id) {
         Gateway gateway = gatewayRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Gateway " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gateway", "id", id));
         return modelMapper.map(gateway, GatewayDTO.class);
     }
 
     public Gateway findGatewayEntity(Long id) {
         return gatewayRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Gateway " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gateway", "id", id));
     }
 
     // Eliminar Gateway
     public void deleteGateway(Long id) {
         Gateway gateway = gatewayRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Gateway " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gateway", "id", id));
 
         // Eliminar edges conectados en cascada (soft delete)
         List<Edge> connectedEdges = edgeRepository.findByGatewayId(id);
@@ -118,9 +119,10 @@ public class GatewayService {
     // Listar todos los Gateways
     public List<GatewayDTO> findGateways() {
         List<Gateway> gateways = gatewayRepository.findAll();
-        
+
         System.out.println("Gateways en BD: " + gateways.size());
-        gateways.forEach(g -> System.out.println("  - ID: " + g.getId() + ", tipo: " + g.getType() + ", x: " + g.getX() + ", y: " + g.getY()));
+        gateways.forEach(g -> System.out
+                .println("  - ID: " + g.getId() + ", tipo: " + g.getType() + ", x: " + g.getX() + ", y: " + g.getY()));
 
         return gateways.stream()
                 .map(gateway -> modelMapper.map(gateway, GatewayDTO.class))
@@ -132,7 +134,8 @@ public class GatewayService {
      *
      * Este método permite filtrar gateways por el proceso al que pertenecen,
      * facilitando la visualización de elementos específicos de cada proceso.
-     * Solo retorna gateways con status='active' debido al filtro @Where de la entidad.
+     * Solo retorna gateways con status='active' debido al filtro @Where de la
+     * entidad.
      *
      * @param processId Identificador del proceso
      * @return Lista de GatewayDTO de gateways activos del proceso
@@ -183,7 +186,7 @@ public class GatewayService {
      */
     public GatewayDTO reactivateGateway(Long id) {
         Gateway gateway = gatewayRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Gateway " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gateway", "id", id));
 
         gateway.setStatus("active");
         gateway = gatewayRepository.save(gateway);

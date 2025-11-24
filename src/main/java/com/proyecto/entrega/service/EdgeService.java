@@ -11,9 +11,9 @@ import com.proyecto.entrega.entity.Edge;
 import com.proyecto.entrega.entity.Activity;
 import com.proyecto.entrega.entity.Gateway;
 import com.proyecto.entrega.entity.Process;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.EdgeRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 /**
  * EdgeService - Servicio para gestión de conexiones entre nodos
@@ -57,12 +57,13 @@ public class EdgeService {
      * SOPORTA DOS FORMATOS:
      *
      * 1. FORMATO LEGACY (Activity→Activity):
-     *    - activitySourceId, activityDestinyId
-     *    → Se convierte automáticamente a fromType='activity', toType='activity'
+     * - activitySourceId, activityDestinyId
+     * → Se convierte automáticamente a fromType='activity', toType='activity'
      *
      * 2. FORMATO TIPADO (Todas las conexiones):
-     *    - fromType, fromId, toType, toId
-     *    → Si es A→A, también puebla activitySource y activityDestiny para compatibilidad
+     * - fromType, fromId, toType, toId
+     * → Si es A→A, también puebla activitySource y activityDestiny para
+     * compatibilidad
      *
      * EJEMPLOS:
      *
@@ -93,8 +94,8 @@ public class EdgeService {
         edge = edgeRepository.save(edge);
 
         System.out.println("Edge creado: ID=" + edge.getId() +
-                          ", " + edge.getFromType() + ":" + edge.getFromId() +
-                          " → " + edge.getToType() + ":" + edge.getToId());
+                ", " + edge.getFromType() + ":" + edge.getFromId() +
+                " → " + edge.getToType() + ":" + edge.getToId());
 
         return modelMapper.map(edge, EdgeDTO.class);
     }
@@ -104,7 +105,7 @@ public class EdgeService {
      */
     public EdgeDTO updateEdge(EdgeDTO edgeDTO) {
         Edge existing = edgeRepository.findById(edgeDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Edge " + edgeDTO.getId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Edge", "id", edgeDTO.getId()));
 
         Process process = processService.findProcessEntity(edgeDTO.getProcessId());
 
@@ -124,16 +125,17 @@ public class EdgeService {
      * LÓGICA DE NORMALIZACIÓN:
      *
      * 1. Si el DTO tiene fromType y toType (formato tipado):
-     *    - Usar esos valores directamente
-     *    - Si es Activity→Activity, también poblar activitySource/Destiny
+     * - Usar esos valores directamente
+     * - Si es Activity→Activity, también poblar activitySource/Destiny
      *
      * 2. Si el DTO tiene activitySourceId y activityDestinyId (formato legacy):
-     *    - Inferir fromType='activity', toType='activity'
-     *    - Poblar fromId=activitySourceId, toId=activityDestinyId
-     *    - Poblar activitySource/Destiny
+     * - Inferir fromType='activity', toType='activity'
+     * - Poblar fromId=activitySourceId, toId=activityDestinyId
+     * - Poblar activitySource/Destiny
      *
      * COMPATIBILIDAD:
-     * Garantiza que todos los edges tengan AMBOS formatos para máxima compatibilidad.
+     * Garantiza que todos los edges tengan AMBOS formatos para máxima
+     * compatibilidad.
      */
     private void normalizeEndpoints(Edge edge, EdgeDTO dto) {
         boolean hasTipado = dto.getFromType() != null && dto.getToType() != null;
@@ -167,27 +169,26 @@ public class EdgeService {
             edge.setActivityDestiny(destiny);
 
         } else {
-            throw new IllegalArgumentException(
-                "Edge debe tener endpoints definidos: usar (fromType/fromId/toType/toId) " +
-                "o (activitySourceId/activityDestinyId)"
-            );
+            throw new ValidationException(
+                    "El edge debe tener endpoints definidos: usar (fromType/fromId/toType/toId) " +
+                            "o (activitySourceId/activityDestinyId)");
         }
     }
 
     public EdgeDTO findEdge(Long id) {
         Edge edge = edgeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Edge " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Edge", "id", id));
         return modelMapper.map(edge, EdgeDTO.class);
     }
 
     public Edge findEdgeEntity(Long id) {
         return edgeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Edge " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Edge", "id", id));
     }
 
     public void deleteEdge(Long id) {
         Edge edge = edgeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Edge " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Edge", "id", id));
         edge.setStatus("inactive");
         edgeRepository.save(edge);
     }
@@ -247,10 +248,9 @@ public class EdgeService {
      */
     public EdgeDTO reactivateEdge(Long id) {
         Edge edge = edgeRepository.findByIdIgnoreStatus(id)
-                .orElseThrow(() -> new EntityNotFoundException("Edge " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Edge", "id", id));
         edge.setStatus("active");
         edge = edgeRepository.save(edge);
         return modelMapper.map(edge, EdgeDTO.class);
     }
 }
-
