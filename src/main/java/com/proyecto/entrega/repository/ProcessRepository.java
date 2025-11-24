@@ -27,4 +27,13 @@ public interface ProcessRepository extends JpaRepository<Process, Long> {
     List<Process> findByCompanyIdAndStatus(@Param("companyId") Long companyId,
                                           @Param("status") String status);
 
+       /**
+        * Verifica si existe un proceso con el nombre especificado en una compañía.
+        *
+        * @param name      Nombre del proceso
+        * @param companyId Identificador de la empresa
+        * @return true si existe, false en caso contrario
+        */
+       boolean existsByNameAndCompanyId(String name, Long companyId);
+
 }

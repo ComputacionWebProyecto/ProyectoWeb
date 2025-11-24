@@ -22,15 +22,9 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public ResponseEntity<AuthorizedDTO> register(@RequestBody RegistrationDTO request) {
-        try{
-            AuthorizedDTO response = registrationService.registerCompanyAndAdmin(request.getCompany(), request.getUser());
-            return ResponseEntity.ok(response);
-        } catch (JsonProcessingException e){
-            return ResponseEntity.status(500).build();
-        } catch (Exception e){
-            return ResponseEntity.status(400).build();
-        }
+    public ResponseEntity<AuthorizedDTO> register(@RequestBody RegistrationDTO request) throws JsonProcessingException {
+        AuthorizedDTO response = registrationService.registerCompanyAndAdmin(request.getCompany(), request.getUser());
+        return ResponseEntity.ok(response);
     }
 }
 

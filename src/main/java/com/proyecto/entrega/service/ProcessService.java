@@ -10,6 +10,7 @@ import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.dto.ProcessSummaryDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.entity.Process;
+import com.proyecto.entrega.exception.DuplicateResourceException;
 import com.proyecto.entrega.exception.ResourceNotFoundException;
 import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.ProcessRepository;
@@ -32,6 +33,11 @@ public class ProcessService {
 
         if (processDTO.getCompanyId() == null) {
             throw new ValidationException("El ID de la compañía es requerido");
+        }
+
+        // Validar que no exista un proceso con el mismo nombre en la misma compañía
+        if (processRepository.existsByNameAndCompanyId(processDTO.getName(), processDTO.getCompanyId())) {
+            throw new DuplicateResourceException("Proceso", "nombre", processDTO.getName());
         }
 
         Process process = modelMapper.map(processDTO, Process.class);
@@ -57,6 +63,18 @@ public class ProcessService {
 
         Process process = processRepository.findById(processDTO.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Proceso", "id", processDTO.getId()));
+
+        // Validar que no exista otro proceso con el mismo nombre en la misma compañía
+        // (excluyendo el proceso actual que se está actualizando)
+        Process existingProcess = processRepository.findByCompanyId(processDTO.getCompanyId())
+                .stream()
+                .filter(p -> p.getName().equals(processDTO.getName()) && !p.getId().equals(processDTO.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (existingProcess != null) {
+            throw new DuplicateResourceException("Proceso", "nombre", processDTO.getName());
+        }
 
         Company company = companyService.findCompanyEntity(processDTO.getCompanyId());
 
