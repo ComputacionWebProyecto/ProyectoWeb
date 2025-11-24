@@ -20,10 +20,12 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.dto.AuthorizedDTO;
+import com.proyecto.entrega.dto.UserSafeDTO;
+import com.proyecto.entrega.exception.CryptographicException;
+import com.proyecto.entrega.exception.InvalidTokenException;
 import com.proyecto.entrega.exception.TokenExpiredException;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Jwts.SIG;
@@ -126,7 +128,7 @@ public class JwtUtil {
 
         // Verificar si el token es inválido por otras razones
         if (!validateToken(token)) {
-            throw new IllegalArgumentException("Token inválido");
+            throw new InvalidTokenException("Token inválido");
         }
 
         return getAuthorized(token);
@@ -154,7 +156,7 @@ public class JwtUtil {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 keyBytes = digest.digest(keyBytes);
             } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException("Error al generar la clave", e);
+                throw new CryptographicException("Error al generar la clave", e);
             }
         } else if (keyBytes.length > 32) {
             // Si es mayor a 32 bytes, trunca a 32 bytes
@@ -192,7 +194,7 @@ public class JwtUtil {
             byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al generar hash MD5", e);
+            throw new CryptographicException("Error al generar hash MD5", e);
         }
     }
 
@@ -212,7 +214,7 @@ public class JwtUtil {
             byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al generar hash SHA-1", e);
+            throw new CryptographicException("Error al generar hash SHA-1", e);
         }
     }
 
@@ -228,7 +230,7 @@ public class JwtUtil {
             byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al generar hash SHA-256", e);
+            throw new CryptographicException("Error al generar hash SHA-256", e);
         }
     }
 

@@ -45,10 +45,6 @@ public class LoginService {
         // 1. Buscar usuario por correo
         UserDTO user = userService.findByEmail(loginDTO.getCorreo());
 
-        if (user == null) {
-            throw new InvalidCredentialsException("Credenciales inválidas");
-        }
-
         // 2. Verificar contraseña con BCrypt
         boolean contrasenaCorrecta = passwordEncoder.matches(
                 loginDTO.getContrasena(),
@@ -67,12 +63,10 @@ public class LoginService {
         userSafe.setRoleId(user.getRole().getId());
         userSafe.setCompany(user.getCompany());
         userSafe.setRole(user.getRole());
-        // Agregar otros campos que necesites
 
         // 4. Generar JWT token
-        // El token incluye el usuario serializado como JSON
         String userJson = objectMapper.writeValueAsString(userSafe);
-        String role = user.getRole().getNombre(); // o user.getRole().getId().toString()
+        String role = user.getRole().getNombre();
         String token = jwtUtil.generateToken(userJson, role);
 
         // 5. Retornar AuthorizedDTO con usuario, token y tipo

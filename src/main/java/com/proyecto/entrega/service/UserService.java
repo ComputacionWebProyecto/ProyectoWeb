@@ -13,10 +13,9 @@ import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.entity.Role;
 import com.proyecto.entrega.entity.User;
 import com.proyecto.entrega.exception.DuplicateResourceException;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
 import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.UserRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class UserService {
@@ -44,6 +43,9 @@ public class UserService {
         if (userDTO.getCorreo() == null || userDTO.getCorreo().trim().isEmpty()) {
             throw new ValidationException("El correo electrónico es requerido");
         }
+        if (userDTO.getContrasena() == null || userDTO.getContrasena().isBlank()) {
+            throw new ValidationException("La contraseña es requerida");
+        }
 
         validateCompanyAndRole(userDTO);
 
@@ -59,10 +61,8 @@ public class UserService {
         user.setCompany(company);
         user.setRole(role);
 
-        if (userDTO.getContrasena() != null && !userDTO.getContrasena().isBlank()) {
-            String contrasenaEncriptada = passwordEncoder.encode(userDTO.getContrasena());
-            user.setContrasena(contrasenaEncriptada);
-        }
+        String contrasenaEncriptada = passwordEncoder.encode(userDTO.getContrasena());
+        user.setContrasena(contrasenaEncriptada);
 
         user = userRepository.save(user);
         return modelMapper.map(user, UserDTO.class);
@@ -70,12 +70,12 @@ public class UserService {
 
     public UserDTO updateUser(UserDTO userDTO) {
         if (userDTO.getId() == null) {
-            throw new IllegalArgumentException("User ID must not be null for update.");
+            throw new ValidationException("El ID del usuario es requerido para actualizar");
         }
         validateCompanyAndRole(userDTO);
 
         User user = userRepository.findById(userDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("User " + userDTO.getId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", userDTO.getId()));
 
         Company company = companyService.findCompanyEntity(userDTO.getCompanyId());
         Role role = roleService.findRoleEntity(userDTO.getRoleId());
@@ -96,18 +96,18 @@ public class UserService {
 
     public UserSafeDTO findUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
         return modelMapper.map(user, UserSafeDTO.class);
     }
 
     public User findUserEntity(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
     }
 
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
         user.setStatus("inactive");
         userRepository.save(user);
     }
@@ -130,11 +130,10 @@ public class UserService {
     // MÉTODOS PARA LOGIN
     // ========================================
 
-    // ← AGREGAR ESTE MÉTODO NUEVO ←
     public User findByEmailEntity(String correo) {
         User user = userRepository.findByCorreo(correo);
         if (user == null) {
-            throw new EntityNotFoundException("Usuario con correo " + correo + " no encontrado");
+            throw new ResourceNotFoundException("Usuario", "correo", correo);
         }
         return user;
     }
@@ -142,23 +141,23 @@ public class UserService {
     public UserDTO findByEmail(String correo) {
         User user = userRepository.findByCorreo(correo);
         if (user == null) {
-            throw new EntityNotFoundException("Usuario con correo " + correo + " no encontrado");
+            throw new ResourceNotFoundException("Usuario", "correo", correo);
         }
         return modelMapper.map(user, UserDTO.class);
     }
 
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
         return modelMapper.map(user, UserDTO.class);
     }
 
     private void validateCompanyAndRole(UserDTO userDTO) {
         if (userDTO.getCompanyId() == null) {
-            throw new IllegalArgumentException("Company ID must not be null");
+            throw new ValidationException("El ID de la compañía es requerido");
         }
         if (userDTO.getRoleId() == null) {
-            throw new IllegalArgumentException("Role ID must not be null");
+            throw new ValidationException("El ID del rol es requerido");
         }
     }
 }

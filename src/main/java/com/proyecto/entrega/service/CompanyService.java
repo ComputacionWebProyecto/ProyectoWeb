@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import com.proyecto.entrega.dto.CompanyDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.exception.DuplicateResourceException;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.CompanyRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class CompanyService {
@@ -35,11 +35,11 @@ public class CompanyService {
 
     public CompanyDTO updateCompany(CompanyDTO companyDTO) {
         if (companyDTO.getId() == null) {
-            throw new IllegalArgumentException("Id is required for update");
+            throw new ValidationException("El ID es requerido para actualizar");
         }
 
         Company company = companyRepository.findById(companyDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Company " + companyDTO.getId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Compañía", "id", companyDTO.getId()));
 
         company.setName(companyDTO.getName());
         company.setNit(companyDTO.getNit());
@@ -51,18 +51,18 @@ public class CompanyService {
 
     public CompanyDTO findCompany(Long id) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Company " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Compañía", "id", id));
         return modelMapper.map(company, CompanyDTO.class);
     }
 
     public Company findCompanyEntity(Long id) {
         return companyRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Company " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Compañía", "id", id));
     }
 
     public void deleteCompany(Long id) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Company " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Compañía", "id", id));
         company.setStatus("inactive");
         companyRepository.save(company);
 
