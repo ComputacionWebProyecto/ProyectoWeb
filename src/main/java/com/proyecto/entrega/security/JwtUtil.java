@@ -20,9 +20,12 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.dto.AuthorizedDTO;
+import com.proyecto.entrega.dto.UserSafeDTO;
+import com.proyecto.entrega.exception.CryptographicException;
+import com.proyecto.entrega.exception.InvalidTokenException;
+import com.proyecto.entrega.exception.TokenExpiredException;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Jwts.SIG;
@@ -62,7 +65,6 @@ public class JwtUtil {
 
         return new SecretKeySpec(keyBytes, SIG.HS256.key().build().getAlgorithm());
     }
-    
 
     public String generateToken(String jusuario, String role) {
         return Jwts.builder()
@@ -87,6 +89,15 @@ public class JwtUtil {
         }
     }
 
+    public boolean isTokenExpired(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return claims.getExpiration().before(new Date());
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     public String extractRole(String token) {
         return (String) getClaims(token).get("role");
     }
@@ -95,27 +106,37 @@ public class JwtUtil {
      * Recibe un token JWT, lo valida y genera uno nuevo con los mismos datos.
      */
     /**
-     * Recibe Authentication, extrae el token JWT del principal, lo valida y genera uno nuevo.
-     * @throws JsonProcessingException 
-     * @throws JsonMappingException 
+     * Recibe Authentication, extrae el token JWT del principal, lo valida y genera
+     * uno nuevo.
+     * 
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
      */
-    public AuthorizedDTO renewToken(Authentication authentication) throws JsonMappingException, JsonProcessingException {
-        
+    public AuthorizedDTO renewToken(Authentication authentication)
+            throws JsonMappingException, JsonProcessingException {
+
         if (authentication == null || authentication.getPrincipal() == null) {
-            throw new IllegalArgumentException("Authentication inválido");
+            throw new IllegalArgumentException("Autenticación inválida");
         }
-        
+
         String token = authentication.getCredentials().toString();
-        if (!validateToken(token)) {
-            throw new IllegalArgumentException("Token inválido o expirado");
+
+        // Verificar si el token está expirado específicamente
+        if (isTokenExpired(token)) {
+            throw new TokenExpiredException("El token JWT ha expirado. Por favor, renueve su sesión.");
         }
-        
+
+        // Verificar si el token es inválido por otras razones
+        if (!validateToken(token)) {
+            throw new InvalidTokenException("Token inválido");
+        }
 
         return getAuthorized(token);
     }
 
-
-    public AuthorizedDTO appAuthorized(String token) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, JsonMappingException, JsonProcessingException{
+    public AuthorizedDTO appAuthorized(String token)
+            throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
+            BadPaddingException, JsonMappingException, JsonProcessingException {
         String skey = System.getenv("JWT_SECRET_APP");
         SecretKey SECRET_KEY_APP = generateKeyFromText(skey);
         String susuario = decrypt(token, SECRET_KEY_APP);
@@ -125,6 +146,7 @@ public class JwtUtil {
         String newToken = generateToken(susuario, "APP_USER");
         return new AuthorizedDTO(user, newToken, "Bearer");
     }
+
     private SecretKey generateKeyFromText(String text) {
         // Asegúrate de que el texto tenga al menos 256 bits (32 bytes)
         byte[] keyBytes = text.getBytes(StandardCharsets.UTF_8);
@@ -134,7 +156,7 @@ public class JwtUtil {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 keyBytes = digest.digest(keyBytes);
             } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException("Error al generar la clave", e);
+                throw new CryptographicException("Error al generar la clave", e);
             }
         } else if (keyBytes.length > 32) {
             // Si es mayor a 32 bytes, trunca a 32 bytes
@@ -145,9 +167,9 @@ public class JwtUtil {
 
         return new SecretKeySpec(keyBytes, "AES");
     }
-    public AuthorizedDTO getAuthorized( String token ) throws JsonMappingException, JsonProcessingException {
-        
-        
+
+    public AuthorizedDTO getAuthorized(String token) throws JsonMappingException, JsonProcessingException {
+
         String jusuario = getClaims(token).getSubject();
         // String role = (String) getClaims(token).get("role");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -156,10 +178,12 @@ public class JwtUtil {
 
         return new AuthorizedDTO(user, newToken, "Bearer");
     }
+
     /**
      * Genera un hash MD5 de los datos proporcionados
      * ⚠️ ADVERTENCIA: MD5 se considera inseguro para la mayoría de los casos de uso
-     * Se recomienda usar algoritmos más seguros como SHA-256 o bcrypt para contraseñas
+     * Se recomienda usar algoritmos más seguros como SHA-256 o bcrypt para
+     * contraseñas
      *
      * @param data Los datos a hashear
      * @return Hash MD5 en formato hexadecimal
@@ -170,14 +194,16 @@ public class JwtUtil {
             byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al generar hash MD5", e);
+            throw new CryptographicException("Error al generar hash MD5", e);
         }
     }
 
     /**
      * Genera un hash SHA-1 de los datos proporcionados
-     * ⚠️ ADVERTENCIA: SHA-1 se considera inseguro para la mayoría de los casos de uso
-     * Se recomienda usar algoritmos más seguros como SHA-256 o bcrypt para contraseñas
+     * ⚠️ ADVERTENCIA: SHA-1 se considera inseguro para la mayoría de los casos de
+     * uso
+     * Se recomienda usar algoritmos más seguros como SHA-256 o bcrypt para
+     * contraseñas
      *
      * @param data Los datos a hashear
      * @return Hash SHA-1 en formato hexadecimal
@@ -188,7 +214,7 @@ public class JwtUtil {
             byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al generar hash SHA-1", e);
+            throw new CryptographicException("Error al generar hash SHA-1", e);
         }
     }
 
@@ -204,7 +230,7 @@ public class JwtUtil {
             byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al generar hash SHA-256", e);
+            throw new CryptographicException("Error al generar hash SHA-256", e);
         }
     }
 
@@ -230,12 +256,10 @@ public class JwtUtil {
                 .getPayload();
     }
 
-
-
-    
     public SecretKey generateKey() {
         String myKey = "PapaMissYouEveryDay"; // Cambia esto por tu clave
-        // Must be exactly 16 bytes (128 bits), 24 bytes (192 bits), or 32 bytes (256 bits)
+        // Must be exactly 16 bytes (128 bits), 24 bytes (192 bits), or 32 bytes (256
+        // bits)
         byte[] keyBytes = myKey.getBytes(StandardCharsets.UTF_8);
 
         // If the key is shorter, pad it; if longer, truncate it
@@ -246,7 +270,8 @@ public class JwtUtil {
     }
 
     // Encrypt text
-    public String encrypt(String text, SecretKey key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException  {
+    public String encrypt(String text, SecretKey key) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
 
@@ -257,7 +282,8 @@ public class JwtUtil {
     }
 
     // Decrypt text
-    public String decrypt(String encryptedText, SecretKey key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException  {
+    public String decrypt(String encryptedText, SecretKey key) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
 

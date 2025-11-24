@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.entity.Role;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.RoleRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class RoleService {
@@ -28,7 +28,7 @@ public class RoleService {
     public RoleDTO createRole(RoleDTO roleDTO) {
 
         if (roleDTO.getCompanyId() == null) {
-            throw new IllegalArgumentException("CompanyId is required for create");
+            throw new ValidationException("El ID de la compañía es requerido para crear");
         }
         Role role = modelMapper.map(roleDTO, Role.class);
 
@@ -43,15 +43,15 @@ public class RoleService {
     public RoleDTO updateRole(RoleDTO roleDTO) {
 
         if (roleDTO.getId() == null) {
-            throw new IllegalArgumentException("Id is required for create");
+            throw new ValidationException("El ID es requerido para actualizar");
         }
 
         if (roleDTO.getCompanyId() == null) {
-            throw new IllegalArgumentException("CompanyId is required for create");
+            throw new ValidationException("El ID de la compañía es requerido para actualizar");
         }
 
         Role role = roleRepository.findById(roleDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Role " + roleDTO.getId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", roleDTO.getId()));
 
         Company company = companyService.findCompanyEntity(roleDTO.getCompanyId());
 
@@ -66,18 +66,18 @@ public class RoleService {
 
     public RoleDTO findRole(Long id) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Role " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", id));
         return modelMapper.map(role, RoleDTO.class);
     }
 
     public Role findRoleEntity(Long id) {
         return roleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Role " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", id));
     }
 
     public void deleteRole(Long id) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Role " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", id));
         role.setStatus("inactive");
         roleRepository.save(role);
     }

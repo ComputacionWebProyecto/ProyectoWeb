@@ -23,16 +23,8 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthorizedDTO> login(@RequestBody LoginDTO request) {
-        try {
-            AuthorizedDTO response = loginService.authenticate(request);
-            return ResponseEntity.ok(response);
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.status(500).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(401).build();
-        }
-    }
-
-    
+    public ResponseEntity<AuthorizedDTO> login(@RequestBody LoginDTO request)  throws JsonProcessingException{
+        AuthorizedDTO response = loginService.authenticate(request);
+        return ResponseEntity.ok(response);
+    }    
 }

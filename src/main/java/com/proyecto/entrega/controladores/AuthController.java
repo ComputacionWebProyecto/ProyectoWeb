@@ -26,17 +26,9 @@ public class AuthController {
     }
 
     @PostMapping("/renew-token")
-    public ResponseEntity<AuthorizedDTO> renewToken(Authentication authentication) {
-        try {
-            AuthorizedDTO response = jwtUtil.renewToken(authentication);
-            return ResponseEntity.ok(response);
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.status(500).body(null);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(401).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
-        }
+    public ResponseEntity<AuthorizedDTO> renewToken(Authentication authentication) throws JsonProcessingException {
+        AuthorizedDTO response = jwtUtil.renewToken(authentication);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/validate")

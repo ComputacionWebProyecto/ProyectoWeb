@@ -10,6 +10,9 @@ import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.dto.ProcessSummaryDTO;
 import com.proyecto.entrega.entity.Company;
 import com.proyecto.entrega.entity.Process;
+import com.proyecto.entrega.exception.DuplicateResourceException;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.ProcessRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -28,10 +31,15 @@ public class ProcessService {
 
     public ProcessDTO createProcess(ProcessDTO processDTO) {
 
-        if (processDTO.getCompanyId() == null){
-            throw new IllegalArgumentException("CompanyId is required");
+        if (processDTO.getCompanyId() == null) {
+            throw new ValidationException("El ID de la compañía es requerido");
         }
-        
+
+        // Validar que no exista un proceso con el mismo nombre en la misma compañía
+        if (processRepository.existsByNameAndCompanyId(processDTO.getName(), processDTO.getCompanyId())) {
+            throw new DuplicateResourceException("Proceso", "nombre", processDTO.getName());
+        }
+
         Process process = modelMapper.map(processDTO, Process.class);
 
         Company company = companyService.findCompanyEntity(processDTO.getCompanyId());
@@ -39,26 +47,38 @@ public class ProcessService {
         process.setCompany(company);
 
         process = processRepository.save(process);
-        
+
         return modelMapper.map(process, ProcessDTO.class);
     }
 
     public ProcessDTO updateProcess(ProcessDTO processDTO) {
 
-        if(processDTO.getId() == null){
-            throw new IllegalArgumentException("Id is required");
+        if (processDTO.getId() == null) {
+            throw new ValidationException("El ID es requerido para actualizar");
         }
 
-        if (processDTO.getCompanyId() == null){
-            throw new IllegalArgumentException("CompanyId is required");
+        if (processDTO.getCompanyId() == null) {
+            throw new ValidationException("El ID de la compañía es requerido");
         }
 
         Process process = processRepository.findById(processDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Process " + processDTO.getId() + " not found"));
-        
-        Company company = companyService.findCompanyEntity(processDTO.getCompanyId()); 
+                .orElseThrow(() -> new ResourceNotFoundException("Proceso", "id", processDTO.getId()));
 
-        // Actualizar valores 
+        // Validar que no exista otro proceso con el mismo nombre en la misma compañía
+        // (excluyendo el proceso actual que se está actualizando)
+        Process existingProcess = processRepository.findByCompanyId(processDTO.getCompanyId())
+                .stream()
+                .filter(p -> p.getName().equals(processDTO.getName()) && !p.getId().equals(processDTO.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (existingProcess != null) {
+            throw new DuplicateResourceException("Proceso", "nombre", processDTO.getName());
+        }
+
+        Company company = companyService.findCompanyEntity(processDTO.getCompanyId());
+
+        // Actualizar valores
         process.setName(processDTO.getName());
         process.setDescription(processDTO.getDescription());
         process.setCompany(company);
@@ -70,19 +90,19 @@ public class ProcessService {
 
     public ProcessDTO findProcess(Long id) {
         Process process = processRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Proceso", "id", id));
 
         return modelMapper.map(process, ProcessDTO.class);
     }
 
     public Process findProcessEntity(Long id) {
         return processRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Proceso", "id", id));
     }
 
     public void deleteProcess(Long id) {
         Process process = processRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Proceso", "id", id));
         process.setStatus("inactive");
         processRepository.save(process);
     }
@@ -101,22 +121,20 @@ public class ProcessService {
                 .toList();
     }
 
-    //Para listar procesos
+    // Para listar procesos
     public List<ProcessSummaryDTO> getProcessesSummaryByCompany(Long id) {
-    List<Process> processes = processRepository.findByCompanyId(id);
-    
-    System.out.println("Procesos resumidos enviados al frontend:");
-    processes.forEach(p -> System.out.println(
-        "ID: " + p.getId() + ", Name: " + p.getName() + ", Description: " + p.getDescription()
-    ));
-    
-    return processes.stream()
-            .map(process -> new ProcessSummaryDTO(
-                    process.getId(),
-                    process.getName(),
-                    process.getDescription()
-            ))
-            .toList();
+        List<Process> processes = processRepository.findByCompanyId(id);
+
+        System.out.println("Procesos resumidos enviados al frontend:");
+        processes.forEach(p -> System.out.println(
+                "ID: " + p.getId() + ", Name: " + p.getName() + ", Description: " + p.getDescription()));
+
+        return processes.stream()
+                .map(process -> new ProcessSummaryDTO(
+                        process.getId(),
+                        process.getName(),
+                        process.getDescription()))
+                .toList();
     }
 
     /**
@@ -135,7 +153,7 @@ public class ProcessService {
      */
     public ProcessDTO reactivateProcess(Long id) {
         Process process = processRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Process " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Proceso", "id", id));
 
         process.setStatus("active");
         process = processRepository.save(process);
