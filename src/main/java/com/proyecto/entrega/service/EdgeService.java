@@ -15,6 +15,7 @@ import com.proyecto.entrega.exception.ResourceNotFoundException;
 import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.EdgeRepository;
 
+//comentario
 /**
  * EdgeService - Servicio para gestión de conexiones entre nodos
  *
