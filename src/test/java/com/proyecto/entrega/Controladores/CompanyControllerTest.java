@@ -90,7 +90,7 @@ class CompanyControllerTest {
         payload.setNit(900777888L);
         payload.setName("Nueva Co");
         payload.setCorreoContacto("hola@nueva.co");
-        payload.setStatus("active"); // opcional; el service lo setea si viene null
+        payload.setStatus("active"); 
 
         mockMvc.perform(post("/api/company")
                         .contentType(MediaType.APPLICATION_JSON)

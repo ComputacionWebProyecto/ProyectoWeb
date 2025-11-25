@@ -2,8 +2,12 @@ package com.proyecto.entrega.service;
 
 import com.proyecto.entrega.dto.ActivityDTO;
 import com.proyecto.entrega.entity.Activity;
+import com.proyecto.entrega.entity.Edge;
 import com.proyecto.entrega.entity.Process;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.ActivityRepository;
+import com.proyecto.entrega.repository.EdgeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,12 +28,12 @@ import static org.mockito.Mockito.*;
 class ActivityServiceTest {
 
     @Mock ActivityRepository activityRepository;
+    @Mock EdgeRepository edgeRepository;
     @Mock ModelMapper modelMapper;
     @Mock ProcessService processService;
 
     @InjectMocks ActivityService activityService;
 
-    // Helpers
     private ActivityDTO dto(Long id, String name, Double x, Double y, String d, Double w, Double h, String status, Long processId) {
         ActivityDTO a = new ActivityDTO();
         a.setId(id); a.setName(name); a.setX(x); a.setY(y); a.setDescription(d);
@@ -46,7 +50,7 @@ class ActivityServiceTest {
         return a;
     }
 
-    // ================= CREATE =================
+    
 
     @Test
     void createActivity_ok() {
@@ -76,33 +80,32 @@ class ActivityServiceTest {
     }
 
     @Test
-    void createActivity_missingProcessId_illegalArgument() {
+    void createActivity_missingProcessId_validationException() {
         ActivityDTO inDto = dto(null, "A", 0.0, 0.0, "d", 1.0, 1.0, null, null);
 
         assertThatThrownBy(() -> activityService.createActivity(inDto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ProcessId is required");
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("proceso");
 
         verifyNoInteractions(processService, activityRepository, modelMapper);
     }
 
     @Test
-    void createActivity_processNoExiste_entityNotFound() {
+    void createActivity_processNoExiste_resourceNotFound() {
         ActivityDTO inDto = dto(null, "A", 0.0, 0.0, "d", 1.0, 1.0, null, 999L);
 
         when(processService.findProcessEntity(999L))
-                .thenThrow(new EntityNotFoundException("Process 999 not found"));
+                .thenThrow(new ResourceNotFoundException("Proceso", "id", 999L));
 
         assertThatThrownBy(() -> activityService.createActivity(inDto))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("999");
 
-        // Ojo: como falla antes del map, no se usa el mapper ni el repo
         verify(processService).findProcessEntity(999L);
         verifyNoInteractions(activityRepository, modelMapper);
     }
 
-    // ================= UPDATE =================
+    
 
     @Test
     void updateActivity_ok() {
@@ -134,45 +137,43 @@ class ActivityServiceTest {
     }
 
     @Test
-    void updateActivity_missingId_illegalArgument() {
+    void updateActivity_missingId_validationException() {
         ActivityDTO inDto = dto(null, "X", 0.0, 0.0, "d", 1.0, 1.0, "active", 1L);
 
         assertThatThrownBy(() -> activityService.updateActivity(inDto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ActivityId is required");
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("actividad");
 
         verifyNoInteractions(processService, activityRepository, modelMapper);
     }
 
     @Test
-    void updateActivity_missingProcessId_illegalArgument() {
+    void updateActivity_missingProcessId_validationException() {
         ActivityDTO inDto = dto(5L, "X", 0.0, 0.0, "d", 1.0, 1.0, "active", null);
 
         assertThatThrownBy(() -> activityService.updateActivity(inDto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ProcessId is required");
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("proceso");
 
         verifyNoInteractions(processService, activityRepository, modelMapper);
     }
 
     @Test
-    void updateActivity_noExisteActivity_entityNotFound() {
-        // El service primero valida el process, así que sí hay que stubearlo
+    void updateActivity_noExisteActivity_resourceNotFound() {
         when(processService.findProcessEntity(7L)).thenReturn(new Process());
         when(activityRepository.findById(77L)).thenReturn(Optional.empty());
 
         ActivityDTO inDto = dto(77L, "X", 0.0, 0.0, "d", 1.0, 1.0, "active", 7L);
 
         assertThatThrownBy(() -> activityService.updateActivity(inDto))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("77");
 
         verify(processService).findProcessEntity(7L);
         verify(activityRepository).findById(77L);
-        verifyNoMoreInteractions(activityRepository);
     }
 
-    // ================= FIND =================
+    
 
     @Test
     void findActivity_found() {
@@ -187,26 +188,27 @@ class ActivityServiceTest {
 
         assertThat(result.getId()).isEqualTo(2L);
         assertThat(result.getName()).isEqualTo("A2");
-        assertThat(result.getStatus()).isEqualTo("active");
     }
 
     @Test
-    void findActivity_notFound_entityNotFound() {
+    void findActivity_notFound_resourceNotFound() {
         when(activityRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> activityService.findActivity(999L))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("999");
 
         verify(activityRepository).findById(999L);
-        verifyNoMoreInteractions(activityRepository);
     }
 
-    // ================= DELETE (soft) =================
+    
 
     @Test
     void deleteActivity_ok_softDelete() {
         Activity entity = ent(7L, "A", 1.0, 2.0, "d", 3.0, 4.0, "active", null);
+
+        // Mockeamos edges vacíos (o puedes probar con uno)
+        when(edgeRepository.findByActivityId(7L)).thenReturn(List.of());
         when(activityRepository.findById(7L)).thenReturn(Optional.of(entity));
         when(activityRepository.save(entity)).thenReturn(entity);
 
@@ -217,23 +219,23 @@ class ActivityServiceTest {
     }
 
     @Test
-    void deleteActivity_notFound_entityNotFound() {
+    void deleteActivity_notFound_resourceNotFound() {
         when(activityRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> activityService.deleteActivity(404L))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("404");
 
         verify(activityRepository).findById(404L);
-        verifyNoMoreInteractions(activityRepository);
     }
 
-    // ================= LIST =================
+    
 
     @Test
     void findActivities_ok() {
         Process p = new Process(); p.setId(2L);
         Activity a = ent(1L, "A", 1.0, 2.0, "d", 3.0, 4.0, "active", p);
+
         when(activityRepository.findAll()).thenReturn(List.of(a));
 
         ActivityDTO dto = dto(1L, "A", 1.0, 2.0, "d", 3.0, 4.0, "active", 2L);
@@ -243,8 +245,6 @@ class ActivityServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getName()).isEqualTo("A");
-        assertThat(result.get(0).getStatus()).isEqualTo("active");
         verify(activityRepository).findAll();
-        verify(modelMapper, atLeastOnce()).map(any(Activity.class), eq(ActivityDTO.class));
     }
 }

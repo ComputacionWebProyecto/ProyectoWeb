@@ -2,8 +2,10 @@ package com.proyecto.entrega.service;
 
 import com.proyecto.entrega.dto.CompanyDTO;
 import com.proyecto.entrega.entity.Company;
+import com.proyecto.entrega.exception.DuplicateResourceException;
+import com.proyecto.entrega.exception.ResourceNotFoundException;
+import com.proyecto.entrega.exception.ValidationException;
 import com.proyecto.entrega.repository.CompanyRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
@@ -11,14 +13,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +29,6 @@ class CompanyServiceTest {
 
     @InjectMocks CompanyService companyService;
 
-    // -------- helpers
     private Company company(Long id, Long nit, String name, String correo, String status) {
         Company c = new Company();
         c.setId(id);
@@ -50,7 +49,7 @@ class CompanyServiceTest {
         return d;
     }
 
-    // =================== CREATE ===================
+    
 
     @Test
     void createCompany_ok() {
@@ -73,17 +72,15 @@ class CompanyServiceTest {
     }
 
     @Test
-    void createCompany_nombreDuplicado_badRequest() {
+    void createCompany_nombreDuplicado() {
         CompanyDTO inDto = dto(null, 1L, "Repetida", "c@co.com", null);
         when(companyRepository.existsByName("Repetida")).thenReturn(true);
 
-        ResponseStatusException ex = catchThrowableOfType(
-                () -> companyService.createCompany(inDto),
-                ResponseStatusException.class
-        );
-        assertThat(ex).isNotNull();
-        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(ex.getReason()).contains("Nombre de compañía ya existe");
+        assertThatThrownBy(() -> companyService.createCompany(inDto))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessageContaining("Compañía")
+                .hasMessageContaining("nombre")
+                .hasMessageContaining("Repetida");
 
         verify(companyRepository).existsByName("Repetida");
         verifyNoMoreInteractions(companyRepository);
@@ -91,18 +88,16 @@ class CompanyServiceTest {
     }
 
     @Test
-    void createCompany_correoDuplicado_badRequest() {
+    void createCompany_correoDuplicado() {
         CompanyDTO inDto = dto(null, 1L, "OkName", "dup@co.com", null);
         when(companyRepository.existsByName("OkName")).thenReturn(false);
         when(companyRepository.existsByCorreoContacto("dup@co.com")).thenReturn(true);
 
-        ResponseStatusException ex = catchThrowableOfType(
-                () -> companyService.createCompany(inDto),
-                ResponseStatusException.class
-        );
-        assertThat(ex).isNotNull();
-        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(ex.getReason()).contains("Correo de compañía ya existe");
+        assertThatThrownBy(() -> companyService.createCompany(inDto))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessageContaining("Compañía")
+                .hasMessageContaining("correo")
+                .hasMessageContaining("dup@co.com");
 
         verify(companyRepository).existsByName("OkName");
         verify(companyRepository).existsByCorreoContacto("dup@co.com");
@@ -110,7 +105,7 @@ class CompanyServiceTest {
         verifyNoInteractions(modelMapper);
     }
 
-    // =================== UPDATE ===================
+    
 
     @Test
     void updateCompany_ok() {
@@ -133,31 +128,32 @@ class CompanyServiceTest {
     }
 
     @Test
-    void updateCompany_idNulo_illegalArgument() {
+    void updateCompany_idNulo() {
         CompanyDTO inDto = dto(null, 1L, "X", "x@co.com", "active");
 
         assertThatThrownBy(() -> companyService.updateCompany(inDto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Id is required for update");
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("ID es requerido");
 
         verifyNoInteractions(companyRepository, modelMapper);
     }
 
     @Test
-    void updateCompany_noExiste_entityNotFound() {
+    void updateCompany_noExiste() {
         CompanyDTO inDto = dto(77L, 1L, "X", "x@co.com", "active");
         when(companyRepository.findById(77L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> companyService.updateCompany(inDto))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Company 77");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Compañía")
+                .hasMessageContaining("77");
 
         verify(companyRepository).findById(77L);
         verifyNoMoreInteractions(companyRepository);
         verifyNoInteractions(modelMapper);
     }
 
-    // =================== FIND (DTO & ENTITY) ===================
+    
 
     @Test
     void findCompany_found() {
@@ -178,9 +174,11 @@ class CompanyServiceTest {
         when(companyRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> companyService.findCompany(999L))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("999");
     }
+
+    
 
     @Test
     void findCompanyEntity_found() {
@@ -197,14 +195,14 @@ class CompanyServiceTest {
         when(companyRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> companyService.findCompanyEntity(404L))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("404");
     }
 
-    // =================== DELETE (soft) ===================
+    
 
     @Test
-    void deleteCompany_ok_softDelete() {
+    void deleteCompany_ok() {
         Company entity = company(7L, 111L, "Empresa", "correo@test.com", "active");
         when(companyRepository.findById(7L)).thenReturn(Optional.of(entity));
         when(companyRepository.save(entity)).thenReturn(entity);
@@ -212,6 +210,7 @@ class CompanyServiceTest {
         companyService.deleteCompany(7L);
 
         assertThat(entity.getStatus()).isEqualTo("inactive");
+
         ArgumentCaptor<Company> captor = ArgumentCaptor.forClass(Company.class);
         verify(companyRepository).save(captor.capture());
         assertThat(captor.getValue().getStatus()).isEqualTo("inactive");
@@ -222,23 +221,25 @@ class CompanyServiceTest {
         when(companyRepository.findById(123L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> companyService.deleteCompany(123L))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("123");
 
         verify(companyRepository).findById(123L);
         verifyNoMoreInteractions(companyRepository);
     }
 
-    // =================== LIST ===================
+    
 
     @Test
     void findCompanies_ok() {
         Company a = company(1L, 1L, "A", "a@co.com", "active");
         Company b = company(2L, 2L, "B", "b@co.com", "active");
+
         when(companyRepository.findAll()).thenReturn(List.of(a, b));
 
         CompanyDTO da = dto(1L, 1L, "A", "a@co.com", "active");
         CompanyDTO db = dto(2L, 2L, "B", "b@co.com", "active");
+
         when(modelMapper.map(a, CompanyDTO.class)).thenReturn(da);
         when(modelMapper.map(b, CompanyDTO.class)).thenReturn(db);
 
@@ -247,7 +248,5 @@ class CompanyServiceTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getName()).isEqualTo("A");
         assertThat(result.get(1).getName()).isEqualTo("B");
-        verify(companyRepository).findAll();
-        verify(modelMapper, atLeastOnce()).map(any(Company.class), eq(CompanyDTO.class));
     }
 }

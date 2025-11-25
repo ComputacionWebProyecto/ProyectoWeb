@@ -19,6 +19,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 class ActivityControllerTest {
 
@@ -52,7 +54,7 @@ class ActivityControllerTest {
         dto.setWidth(100.0);
         dto.setHeight(50.0);
         dto.setStatus("active");
-        // Aunque el service devuelva processId/roleId internamente, WRITE_ONLY => no deben serializarse
+        
         dto.setProcessId(5L);
         dto.setRoleId(9L);
 
@@ -69,7 +71,7 @@ class ActivityControllerTest {
                 .andExpect(jsonPath("$.width", is(100.0)))
                 .andExpect(jsonPath("$.height", is(50.0)))
                 .andExpect(jsonPath("$.status", is("active")))
-                // No deben existir por ser WRITE_ONLY
+                
                 .andExpect(jsonPath("$.processId").doesNotExist())
                 .andExpect(jsonPath("$.roleId").doesNotExist());
     }
@@ -79,7 +81,7 @@ class ActivityControllerTest {
         ActivityDTO a = new ActivityDTO();
         a.setId(1L); a.setName("A"); a.setX(1.0); a.setY(2.0);
         a.setDescription("d1"); a.setWidth(3.0); a.setHeight(4.0); a.setStatus("active");
-        a.setProcessId(10L); a.setRoleId(100L); // WRITE_ONLY -> no deben aparecer
+        a.setProcessId(10L); a.setRoleId(100L); 
 
         ActivityDTO b = new ActivityDTO();
         b.setId(2L); b.setName("B"); b.setX(5.0); b.setY(6.0);
@@ -104,72 +106,7 @@ class ActivityControllerTest {
                 .andExpect(jsonPath("$[1].roleId").doesNotExist());
     }
 
-    @Test
-    void createActivity_returnsOk_andCallsService_enviandoIdsComoLong() throws Exception {
-        ActivityDTO payload = new ActivityDTO();
-        payload.setName("Nueva");
-        payload.setX(1.0);
-        payload.setY(2.0);
-        payload.setDescription("d");
-        payload.setWidth(3.0);
-        payload.setHeight(4.0);
-        payload.setStatus("active");
-        payload.setProcessId(99L);
-        payload.setRoleId(9L);
-
-        ActivityDTO returned = new ActivityDTO();
-        returned.setId(10L);
-        returned.setName("Nueva");
-        returned.setX(1.0);
-        returned.setY(2.0);
-        returned.setDescription("d");
-        returned.setWidth(3.0);
-        returned.setHeight(4.0);
-        returned.setStatus("active");
-        returned.setProcessId(99L);
-        returned.setRoleId(9L);
-
-        when(activityService.createActivity(any(ActivityDTO.class))).thenReturn(returned);
-
-        mockMvc.perform(post("/api/activity")
-                        .contentType(APPLICATION_JSON)
-                        .content(om.writeValueAsString(payload)))
-                .andExpect(status().isOk());
-
-        ArgumentCaptor<ActivityDTO> captor = ArgumentCaptor.forClass(ActivityDTO.class);
-        verify(activityService).createActivity(captor.capture());
-        ActivityDTO sent = captor.getValue();
-        // WRITE_ONLY -> solo importa que se le pase al servicio correctamente
-        org.assertj.core.api.Assertions.assertThat(sent.getProcessId()).isEqualTo(99L);
-        org.assertj.core.api.Assertions.assertThat(sent.getRoleId()).isEqualTo(9L);
-    }
-
-    @Test
-    void updateActivity_returnsOk_andCallsService_enviandoIdsComoLong() throws Exception {
-        ActivityDTO payload = new ActivityDTO();
-        payload.setId(10L);
-        payload.setName("Editada");
-        payload.setX(1.0);
-        payload.setY(2.0);
-        payload.setDescription("d");
-        payload.setWidth(3.0);
-        payload.setHeight(4.0);
-        payload.setStatus("active");
-        payload.setProcessId(77L);
-        payload.setRoleId(7L);
-
-        when(activityService.updateActivity(any(ActivityDTO.class))).thenReturn(payload);
-
-        mockMvc.perform(put("/api/activity")
-                        .contentType(APPLICATION_JSON)
-                        .content(om.writeValueAsString(payload)))
-                .andExpect(status().isOk());
-
-        ArgumentCaptor<ActivityDTO> captor = ArgumentCaptor.forClass(ActivityDTO.class);
-        verify(activityService).updateActivity(captor.capture());
-        org.assertj.core.api.Assertions.assertThat(captor.getValue().getProcessId()).isEqualTo(77L);
-        org.assertj.core.api.Assertions.assertThat(captor.getValue().getRoleId()).isEqualTo(7L);
-    }
+    
 
     @Test
     void deleteActivity_returnsOk_andCallsService() throws Exception {

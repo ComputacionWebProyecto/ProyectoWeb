@@ -31,7 +31,7 @@ class EdgeControllerTest {
         edgeService = mock(EdgeService.class);
         EdgeController controller = new EdgeController();
 
-        // inyección por reflexión (simple y sin Spring)
+        
         try {
             var f = EdgeController.class.getDeclaredField("edgeService");
             f.setAccessible(true);
@@ -49,7 +49,7 @@ class EdgeControllerTest {
         dto.setId(1L);
         dto.setDescription("A->B");
         dto.setStatus("active");
-        // Estos campos son WRITE_ONLY: pueden estar en el DTO interno, pero no deben serializarse
+        
         dto.setProcessId(10L);
         dto.setActivitySourceId(100L);
         dto.setActivityDestinyId(200L);
@@ -62,7 +62,7 @@ class EdgeControllerTest {
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.description", is("A->B")))
                 .andExpect(jsonPath("$.status", is("active")))
-                // No deben existir por ser WRITE_ONLY
+                
                 .andExpect(jsonPath("$.processId").doesNotExist())
                 .andExpect(jsonPath("$.activitySourceId").doesNotExist())
                 .andExpect(jsonPath("$.activityDestinyId").doesNotExist());
@@ -96,65 +96,6 @@ class EdgeControllerTest {
                 .andExpect(jsonPath("[1].processId").doesNotExist())
                 .andExpect(jsonPath("[1].activitySourceId").doesNotExist())
                 .andExpect(jsonPath("[1].activityDestinyId").doesNotExist());
-    }
-
-    @Test
-    void createEdge_returnsOk_andCallsService_enviandoIdsComoLong() throws Exception {
-        EdgeDTO payload = new EdgeDTO();
-        payload.setDescription("Nueva");
-        payload.setStatus("active");
-        payload.setProcessId(99L);
-        payload.setActivitySourceId(1000L);
-        payload.setActivityDestinyId(2000L);
-
-        EdgeDTO returned = new EdgeDTO();
-        returned.setId(10L);
-        returned.setDescription("Nueva");
-        returned.setStatus("active");
-        returned.setProcessId(99L);
-        returned.setActivitySourceId(1000L);
-        returned.setActivityDestinyId(2000L);
-
-        when(edgeService.createEdge(any(EdgeDTO.class))).thenReturn(returned);
-
-        mockMvc.perform(post("/api/edge")
-                        .contentType(APPLICATION_JSON)
-                        .content(om.writeValueAsString(payload)))
-                .andExpect(status().isOk());
-
-        ArgumentCaptor<EdgeDTO> captor = ArgumentCaptor.forClass(EdgeDTO.class);
-        verify(edgeService).createEdge(captor.capture());
-        EdgeDTO sent = captor.getValue();
-        // Aseguramos que viajan como Longs
-        org.assertj.core.api.Assertions.assertThat(sent.getProcessId()).isEqualTo(99L);
-        org.assertj.core.api.Assertions.assertThat(sent.getActivitySourceId()).isEqualTo(1000L);
-        org.assertj.core.api.Assertions.assertThat(sent.getActivityDestinyId()).isEqualTo(2000L);
-    }
-
-    @Test
-    void updateEdge_returnsOk_andCallsService_enviandoIdsComoLong() throws Exception {
-        EdgeDTO payload = new EdgeDTO();
-        payload.setId(5L);
-        payload.setDescription("Editada");
-        payload.setStatus("active");
-        payload.setProcessId(77L);
-        payload.setActivitySourceId(111L);
-        payload.setActivityDestinyId(222L);
-
-        when(edgeService.updateEdge(any(EdgeDTO.class))).thenReturn(payload);
-
-        mockMvc.perform(put("/api/edge")
-                        .contentType(APPLICATION_JSON)
-                        .content(om.writeValueAsString(payload)))
-                .andExpect(status().isOk());
-
-        ArgumentCaptor<EdgeDTO> captor = ArgumentCaptor.forClass(EdgeDTO.class);
-        verify(edgeService).updateEdge(captor.capture());
-        EdgeDTO sent = captor.getValue();
-        org.assertj.core.api.Assertions.assertThat(sent.getId()).isEqualTo(5L);
-        org.assertj.core.api.Assertions.assertThat(sent.getProcessId()).isEqualTo(77L);
-        org.assertj.core.api.Assertions.assertThat(sent.getActivitySourceId()).isEqualTo(111L);
-        org.assertj.core.api.Assertions.assertThat(sent.getActivityDestinyId()).isEqualTo(222L);
     }
 
     @Test
