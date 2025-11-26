@@ -1,6 +1,5 @@
 package com.proyecto.entrega.controladores;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.CompanyDTO;
 import com.proyecto.entrega.service.CompanyService;
+import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/company")
@@ -29,22 +30,34 @@ public class CompanyController {
     }
 
     @PutMapping()
-    public CompanyDTO updateCompany(@RequestBody CompanyDTO company) {
+    public CompanyDTO updateCompany(Authentication authentication, @RequestBody CompanyDTO company) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return companyService.updateCompany(company);
     }
 
     @DeleteMapping(value = "/{id}")
-    public void deleteCompany(@PathVariable Long id) {
+    public void deleteCompany(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         companyService.deleteCompany(id);
     }
 
     @GetMapping(value = "/{id}")
-    public CompanyDTO getCompany(@PathVariable Long id) {
+    public CompanyDTO getCompany(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return companyService.findCompany(id);
     }
 
     @GetMapping()
-    public List<CompanyDTO> getCompany() {
+    public List<CompanyDTO> getCompany(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return companyService.findCompanies();
     }
 

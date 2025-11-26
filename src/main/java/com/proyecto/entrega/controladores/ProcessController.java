@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.dto.ProcessSummaryDTO;
 import com.proyecto.entrega.service.ProcessService;
+import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import org.springframework.security.core.Authentication;
+
 @RestController
 @RequestMapping("/api/process")
 public class ProcessController {
@@ -23,37 +26,59 @@ public class ProcessController {
     private ProcessService processService;
 
     @PostMapping()
-    public ProcessDTO createProcess(@RequestBody ProcessDTO process) {
+    public ProcessDTO createProcess(Authentication authentication, @RequestBody ProcessDTO process) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return processService.createProcess(process);
     }
 
     @PutMapping()
-    public ProcessDTO updateProcess(@RequestBody ProcessDTO  process) {
+    public ProcessDTO updateProcess(Authentication authentication, @RequestBody ProcessDTO process) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return processService.updateProcess(process);
     }
 
     @DeleteMapping(value = "/{id}")
-    public void deleteProcess(@PathVariable Long id) {
+    public void deleteProcess(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         processService.deleteProcess(id);
     }
 
     @GetMapping(value = "/{id}")
-    public ProcessDTO getProcess(@PathVariable Long id) {
+    public ProcessDTO getProcess(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return processService.findProcess(id);
     }
 
     @GetMapping()
-    public List<ProcessDTO> getProcesses() {
+    public List<ProcessDTO> getProcesses(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return processService.findProcesses();
     }
 
     @GetMapping(value = "/company/{id}")
-    public List<ProcessDTO> getProcessesByCompany(@PathVariable Long id){
+    public List<ProcessDTO> getProcessesByCompany(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return processService.getProcessesByCompany(id);
     }
 
     @GetMapping(value = "/company/{companyId}/summary")
-    public ResponseEntity<List<ProcessSummaryDTO>> getProcessesSummaryByCompany(@PathVariable Long companyId) {
+    public ResponseEntity<List<ProcessSummaryDTO>> getProcessesSummaryByCompany(Authentication authentication,
+            @PathVariable Long companyId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         List<ProcessSummaryDTO> summaries = processService.getProcessesSummaryByCompany(companyId);
         return ResponseEntity.ok(summaries);
     }
@@ -70,7 +95,10 @@ public class ProcessController {
      * @return ProcessDTO del proceso reactivado
      */
     @PutMapping(value = "/{id}/reactivate")
-    public ProcessDTO reactivateProcess(@PathVariable Long id) {
+    public ProcessDTO reactivateProcess(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return processService.reactivateProcess(id);
     }
 
@@ -86,7 +114,10 @@ public class ProcessController {
      * @return Lista de procesos inactivos
      */
     @GetMapping(value = "/company/{companyId}/inactive")
-    public List<ProcessDTO> getInactiveProcessesByCompany(@PathVariable Long companyId) {
+    public List<ProcessDTO> getInactiveProcessesByCompany(Authentication authentication, @PathVariable Long companyId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return processService.getInactiveProcessesByCompany(companyId);
     }
 

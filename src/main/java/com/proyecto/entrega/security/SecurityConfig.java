@@ -3,6 +3,7 @@ package com.proyecto.entrega.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     
     @Autowired
@@ -54,9 +56,6 @@ public class SecurityConfig {
                 
                 // Login
                 .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
-                
-                // Crear usuario
-                .requestMatchers(HttpMethod.POST, "/api/user").permitAll()
                 
                 // Swagger
                 .requestMatchers("/auth/swagger-ui/**").permitAll()

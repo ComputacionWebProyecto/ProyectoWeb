@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.service.RoleService;
+import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/role")
@@ -22,32 +24,50 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping()
-    public RoleDTO createRole(@RequestBody RoleDTO role) {
+    public RoleDTO createRole(Authentication authentication, @RequestBody RoleDTO role) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return roleService.createRole(role);
     }
 
     @PutMapping()
-    public RoleDTO updateRole(@RequestBody RoleDTO role) {
+    public RoleDTO updateRole(Authentication authentication, @RequestBody RoleDTO role) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return roleService.updateRole(role);
     }
 
     @DeleteMapping(value = "/{id}")
-    public void deleteRole(@PathVariable Long id) {
+    public void deleteRole(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         roleService.deleteRole(id);
     }
 
     @GetMapping(value = "/{id}")
-    public RoleDTO getRole(@PathVariable Long id) {
+    public RoleDTO getRole(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return roleService.findRole(id);
     }
 
     @GetMapping()
-    public List<RoleDTO> getRoles() {
+    public List<RoleDTO> getRoles(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return roleService.findRoles();
     }
 
     @GetMapping(value = "/company/{id}")
-    public List<RoleDTO> getRolesByCompany(@PathVariable Long id) {
+    public List<RoleDTO> getRolesByCompany(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return roleService.getUsersByCompany(id);
     }
 

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.EdgeDTO;
 import com.proyecto.entrega.service.EdgeService;
+import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import org.springframework.security.core.Authentication;
 
 /**
  * EdgeController - REST API para gestión de edges
@@ -29,27 +31,42 @@ public class EdgeController {
     private EdgeService edgeService;
 
     @PostMapping()
-    public EdgeDTO createEdge(@RequestBody EdgeDTO edgeDTO) {
+    public EdgeDTO createEdge(Authentication authentication, @RequestBody EdgeDTO edgeDTO) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return edgeService.createEdge(edgeDTO);
     }
 
     @PutMapping()
-    public EdgeDTO updateEdge(@RequestBody EdgeDTO edgeDTO) {
+    public EdgeDTO updateEdge(Authentication authentication, @RequestBody EdgeDTO edgeDTO) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return edgeService.updateEdge(edgeDTO);
     }
 
     @DeleteMapping(value = "/{id}")
-    public void deleteEdge(@PathVariable Long id) {
+    public void deleteEdge(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         edgeService.deleteEdge(id);
     }
 
     @GetMapping(value = "/{id}")
-    public EdgeDTO getEdge(@PathVariable Long id) {
+    public EdgeDTO getEdge(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return edgeService.findEdge(id);
     }
 
     @GetMapping()
-    public List<EdgeDTO> getEdges() {
+    public List<EdgeDTO> getEdges(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return edgeService.findEdges();
     }
 
@@ -66,7 +83,10 @@ public class EdgeController {
      * @return Lista de edges activos del proceso
      */
     @GetMapping(value = "/process/{processId}")
-    public List<EdgeDTO> getEdgesByProcess(@PathVariable Long processId) {
+    public List<EdgeDTO> getEdgesByProcess(Authentication authentication, @PathVariable Long processId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return edgeService.findEdgesByProcess(processId);
     }
 
@@ -82,7 +102,10 @@ public class EdgeController {
      * @return Lista de edges inactivos del proceso
      */
     @GetMapping(value = "/process/{processId}/inactive")
-    public List<EdgeDTO> getInactiveEdgesByProcess(@PathVariable Long processId) {
+    public List<EdgeDTO> getInactiveEdgesByProcess(Authentication authentication, @PathVariable Long processId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return edgeService.findInactiveEdgesByProcess(processId);
     }
 
@@ -98,7 +121,10 @@ public class EdgeController {
      * @return EdgeDTO del edge reactivado
      */
     @PutMapping(value = "/{id}/reactivate")
-    public EdgeDTO reactivateEdge(@PathVariable Long id) {
+    public EdgeDTO reactivateEdge(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return edgeService.reactivateEdge(id);
     }
 

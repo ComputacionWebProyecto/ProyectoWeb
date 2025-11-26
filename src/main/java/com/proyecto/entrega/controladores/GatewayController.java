@@ -1,6 +1,5 @@
 package com.proyecto.entrega.controladores;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.GatewayDTO;
 import com.proyecto.entrega.service.GatewayService;
+import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/gateway")
@@ -24,27 +25,42 @@ public class GatewayController {
     private GatewayService gatewayService;
 
     @PostMapping()
-    public GatewayDTO createGateway(@RequestBody GatewayDTO gatewayDTO) {
+    public GatewayDTO createGateway(Authentication authentication, @RequestBody GatewayDTO gatewayDTO) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return gatewayService.createGateway(gatewayDTO);
     }
 
     @PutMapping()
-    public GatewayDTO updateGateway(@RequestBody GatewayDTO gatewayDTO) {
+    public GatewayDTO updateGateway(Authentication authentication, @RequestBody GatewayDTO gatewayDTO) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return gatewayService.updateGateway(gatewayDTO);
     }
 
     @DeleteMapping(value = "/{id}")
-    public void deleteGateway(@PathVariable Long id) {
+    public void deleteGateway(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         gatewayService.deleteGateway(id);
     }
 
     @GetMapping(value = "/{id}")
-    public GatewayDTO getGateway(@PathVariable Long id) {
+    public GatewayDTO getGateway(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return gatewayService.findGateway(id);
     }
 
     @GetMapping()
-    public List<GatewayDTO> getGateways() {
+    public List<GatewayDTO> getGateways(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return gatewayService.findGateways();
     }
 
@@ -61,7 +77,10 @@ public class GatewayController {
      * @return Lista de gateways activos del proceso
      */
     @GetMapping(value = "/process/{processId}")
-    public List<GatewayDTO> getGatewaysByProcess(@PathVariable Long processId) {
+    public List<GatewayDTO> getGatewaysByProcess(Authentication authentication, @PathVariable Long processId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return gatewayService.findGatewaysByProcess(processId);
     }
 
@@ -77,7 +96,10 @@ public class GatewayController {
      * @return Lista de gateways inactivos del proceso
      */
     @GetMapping(value = "/process/{processId}/inactive")
-    public List<GatewayDTO> getInactiveGatewaysByProcess(@PathVariable Long processId) {
+    public List<GatewayDTO> getInactiveGatewaysByProcess(Authentication authentication, @PathVariable Long processId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return gatewayService.findInactiveGatewaysByProcess(processId);
     }
 
@@ -93,7 +115,10 @@ public class GatewayController {
      * @return GatewayDTO del gateway reactivado
      */
     @PutMapping(value = "/{id}/reactivate")
-    public GatewayDTO reactivateGateway(@PathVariable Long id) {
+    public GatewayDTO reactivateGateway(Authentication authentication, @PathVariable Long id) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        }
         return gatewayService.reactivateGateway(id);
     }
 
