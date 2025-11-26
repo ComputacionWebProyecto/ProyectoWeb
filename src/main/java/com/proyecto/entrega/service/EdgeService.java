@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.proyecto.entrega.dto.EdgeDTO;
 import com.proyecto.entrega.entity.Edge;
 import com.proyecto.entrega.entity.Activity;
-import com.proyecto.entrega.entity.Gateway;
 import com.proyecto.entrega.entity.Process;
 import com.proyecto.entrega.exception.ResourceNotFoundException;
 import com.proyecto.entrega.exception.ValidationException;
@@ -48,9 +47,6 @@ public class EdgeService {
 
     @Autowired
     private ActivityService activityService;
-
-    @Autowired
-    private GatewayService gatewayService;
 
     /**
      * Crea un nuevo Edge normalizando automáticamente el formato de entrada.

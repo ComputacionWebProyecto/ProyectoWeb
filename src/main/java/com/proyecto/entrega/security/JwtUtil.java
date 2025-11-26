@@ -15,16 +15,18 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proyecto.entrega.dto.AuthorizedDTO;
+import com.proyecto.entrega.dto.CompanyDTO;
+import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.exception.CryptographicException;
-import com.proyecto.entrega.exception.InvalidTokenException;
-import com.proyecto.entrega.exception.TokenExpiredException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -33,7 +35,7 @@ import io.jsonwebtoken.Jwts.SIG;
 @Component
 public class JwtUtil {
     private final SecretKey SECRET_KEY = generateSecretKey();
-    private final long EXPIRATION = 1000 * 60 * 60 * 72; // 72 horas
+    private final long EXPIRATION = 1000 * 60 * 60 * 72; 
 
     private static SecretKey generateSecretKey() {
         String secret = System.getenv("JWT_SECRET");
@@ -102,16 +104,6 @@ public class JwtUtil {
         return (String) getClaims(token).get("role");
     }
 
-    /**
-     * Recibe un token JWT, lo valida y genera uno nuevo con los mismos datos.
-     */
-    /**
-     * Recibe Authentication, extrae el token JWT del principal, lo valida y genera
-     * uno nuevo.
-     * 
-     * @throws JsonProcessingException
-     * @throws JsonMappingException
-     */
     public AuthorizedDTO renewToken(Authentication authentication)
             throws JsonMappingException, JsonProcessingException {
 
@@ -119,19 +111,75 @@ public class JwtUtil {
             throw new IllegalArgumentException("Autenticación inválida");
         }
 
-        String token = authentication.getCredentials().toString();
+        String jusuarioJson = authentication.getPrincipal().toString();
+        
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .map(auth -> auth.replace("ROLE_", ""))
+                .orElse("APP_USER");
 
-        // Verificar si el token está expirado específicamente
-        if (isTokenExpired(token)) {
-            throw new TokenExpiredException("El token JWT ha expirado. Por favor, renueve su sesión.");
+        ObjectMapper objectMapper = new ObjectMapper();
+        com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(jusuarioJson);
+
+        Long userId = jsonNode.get("id").asLong();
+        String nombre = jsonNode.get("nombre").asText();
+        String correo = jsonNode.get("correo").asText();
+        String status = jsonNode.has("status") && !jsonNode.get("status").isNull() 
+            ? jsonNode.get("status").asText() 
+            : null;
+        
+        CompanyDTO company = null;
+        if (jsonNode.has("company") && !jsonNode.get("company").isNull()) {
+            JsonNode companyNode = jsonNode.get("company");
+            company = new CompanyDTO();
+            
+            if (companyNode.has("id")) {
+                company.setId(companyNode.get("id").asLong());
+            }
+            if (companyNode.has("name")) {
+                company.setName(companyNode.get("name").asText());
+            }
+            if (companyNode.has("NIT")) {
+                company.setNit(companyNode.get("NIT").asLong());
+            }
+            if (companyNode.has("correoContacto")) {
+                company.setCorreoContacto(companyNode.get("correoContacto").asText());
+            }
+            if (companyNode.has("status") && !companyNode.get("status").isNull()) {
+                company.setStatus(companyNode.get("status").asText());
+            }
         }
-
-        // Verificar si el token es inválido por otras razones
-        if (!validateToken(token)) {
-            throw new InvalidTokenException("Token inválido");
-        }
-
-        return getAuthorized(token);
+        RoleDTO roleObj = null;
+        if (jsonNode.has("role") && !jsonNode.get("role").isNull()) {
+            com.fasterxml.jackson.databind.JsonNode roleNode = jsonNode.get("role");
+            roleObj = new com.proyecto.entrega.dto.RoleDTO();
+            
+            if (roleNode.has("id")) {
+                roleObj.setId(roleNode.get("id").asLong());
+            }
+            if (roleNode.has("nombre")) {
+                roleObj.setNombre(roleNode.get("nombre").asText());
+            }
+            if (roleNode.has("descripcion")) {
+                roleObj.setDescripcion(roleNode.get("descripcion").asText());
+            }
+            if (roleNode.has("status") && !roleNode.get("status").isNull()) {
+                roleObj.setStatus(roleNode.get("status").asText());
+            }
+            if (roleNode.has("companyId")) {
+                roleObj.setCompanyId(roleNode.get("companyId").asLong());
+            }
+        } 
+        UserSafeDTO user = new UserSafeDTO();
+        user.setId(userId);
+        user.setNombre(nombre);
+        user.setCorreo(correo);
+        user.setStatus(status);
+        user.setCompany(company);
+        user.setRole(roleObj);
+        String newToken = generateToken(jusuarioJson, role);
+        return new AuthorizedDTO(user, newToken, "Bearer");
     }
 
     public AuthorizedDTO appAuthorized(String token)
