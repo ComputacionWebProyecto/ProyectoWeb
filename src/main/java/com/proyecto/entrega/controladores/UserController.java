@@ -37,6 +37,7 @@ public class UserController {
         return userService.createUser(user);
     }
 
+    @PreAuthorize("hasRole('administrador')")
     @PutMapping()
     public UserDTO updateUser(Authentication authentication, @RequestBody UserDTO user) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -45,6 +46,7 @@ public class UserController {
         return userService.updateUser(user);
     }
 
+    @PreAuthorize("hasRole('administrador')")
     @DeleteMapping(value = "/{id}")
     public void deleteUser(Authentication authentication, @PathVariable Long id) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -69,6 +71,7 @@ public class UserController {
         return userService.findAllUsers();
     }
 
+    
     @GetMapping(value = "/company/{id}/currentUser")
     public List<UserSafeDTO> getUsersByCompany(Authentication authentication, @PathVariable Long id,
             @RequestParam Long currentUserId) {

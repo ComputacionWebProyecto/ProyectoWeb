@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.EdgeDTO;
+import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.service.EdgeService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import com.proyecto.entrega.security.SecurityHelper;
+
 import org.springframework.security.core.Authentication;
 
 /**
@@ -30,11 +33,19 @@ public class EdgeController {
     @Autowired
     private EdgeService edgeService;
 
+    @Autowired
+    private SecurityHelper securityHelper;
+
     @PostMapping()
     public EdgeDTO createEdge(Authentication authentication, @RequestBody EdgeDTO edgeDTO) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        EdgeDTO edge = edgeService.findEdge(edgeDTO.getId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                edge.getProcess().getCompanyId());
+                
         return edgeService.createEdge(edgeDTO);
     }
 

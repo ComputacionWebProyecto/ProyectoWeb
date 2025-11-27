@@ -17,6 +17,7 @@ import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.dto.ProcessSummaryDTO;
 import com.proyecto.entrega.service.ProcessService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import com.proyecto.entrega.security.SecurityHelper;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -27,12 +28,17 @@ public class ProcessController {
     @Autowired
     private ProcessService processService;
 
+    @Autowired
+    private SecurityHelper securityHelper;
+
     @PostMapping()
     @PreAuthorize("hasRole('administrador')")
     public ProcessDTO createProcess(Authentication authentication, @RequestBody ProcessDTO process) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        securityHelper.validateCompanyAccess(authentication, process.getCompanyId());
+
         return processService.createProcess(process);
     }
 
@@ -42,6 +48,9 @@ public class ProcessController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+
+        securityHelper.validateCompanyAccess(authentication, process.getCompanyId());
+
         return processService.updateProcess(process);
     }
 
@@ -51,6 +60,10 @@ public class ProcessController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        ProcessDTO process = processService.findProcess(id);
+
+        securityHelper.validateCompanyAccess(authentication, process.getCompanyId());
+
         processService.deleteProcess(id);
     }
 
@@ -59,6 +72,12 @@ public class ProcessController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        ProcessDTO process = processService.findProcess(id);
+
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                process.getCompany().getId());
+
         return processService.findProcess(id);
     }
 
@@ -75,6 +94,8 @@ public class ProcessController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        securityHelper.validateCompanyAccess(authentication, id);
+
         return processService.getProcessesByCompany(id);
     }
 
@@ -84,6 +105,8 @@ public class ProcessController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        securityHelper.validateCompanyAccess(authentication, companyId);
+
         List<ProcessSummaryDTO> summaries = processService.getProcessesSummaryByCompany(companyId);
         return ResponseEntity.ok(summaries);
     }

@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
-
+import com.proyecto.entrega.security.SecurityHelper;
 import com.proyecto.entrega.dto.ActivityDTO;
+import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.service.ActivityService;
+import com.proyecto.entrega.service.ProcessService;
 
 @RestController
 @RequestMapping("/api/activity")
@@ -24,11 +26,23 @@ public class ActivityController {
     @Autowired
     private ActivityService activityService;
 
+    @Autowired
+    private ProcessService processService;
+
+    @Autowired
+    private SecurityHelper securityHelper;
+
     @PostMapping()
     public ActivityDTO createActivity(Authentication authentication, @RequestBody ActivityDTO activity) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+
+        ProcessDTO process = processService.findProcess(activity.getProcessId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                process.getCompany().getId());
+
         return activityService.createActivity(activity);
     }
 
@@ -37,6 +51,16 @@ public class ActivityController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        ActivityDTO existing = activityService.findActivity(activity.getId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                existing.getProcess().getCompany().getId());
+
+        ProcessDTO newProcess = processService.findProcess(activity.getProcessId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                newProcess.getCompany().getId());
+
         return activityService.updateActivity(activity);
     }
 
@@ -45,6 +69,9 @@ public class ActivityController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        ActivityDTO activity = activityService.findActivity(id);
+        securityHelper.validateCompanyAccess(authentication, activity.getProcess().getCompanyId());
+
         activityService.deleteActivity(id);
     }
 
@@ -53,6 +80,12 @@ public class ActivityController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        ActivityDTO activity = activityService.findActivity(id);
+
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                activity.getProcess().getCompanyId());
+
         return activityService.findActivity(id);
     }
 
@@ -81,6 +114,9 @@ public class ActivityController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        ProcessDTO process = processService.findProcess(processId);
+        securityHelper.validateCompanyAccess(authentication, process.getCompanyId());
+        
         return activityService.findActivitiesByProcess(processId);
     }
 
@@ -96,7 +132,8 @@ public class ActivityController {
      * @return Lista de activities inactivas del proceso
      */
     @GetMapping(value = "/process/{processId}/inactive")
-    public List<ActivityDTO> getInactiveActivitiesByProcess(Authentication authentication, @PathVariable Long processId) {
+    public List<ActivityDTO> getInactiveActivitiesByProcess(Authentication authentication,
+            @PathVariable Long processId) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
