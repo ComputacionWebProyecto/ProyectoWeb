@@ -47,11 +47,9 @@ public class RoleController {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
         RoleDTO existing = roleService.findRole(role.getId());
-        securityHelper.validateCompanyResourceAccess(
-                authentication,
-                existing.getCompany().getId());
-
+        securityHelper.validateCompanyResourceAccess(authentication, existing.getCompanyId());
         securityHelper.validateCompanyAccess(authentication, role.getCompanyId());
+        
         return roleService.updateRole(role);
     }
 
@@ -79,6 +77,7 @@ public class RoleController {
         securityHelper.validateCompanyResourceAccess(
                 authentication,
                 role.getCompany().getId());
+                
         return roleService.findRole(id);
     }
 
