@@ -42,12 +42,18 @@ public class ProcessController {
         return processService.createProcess(process);
     }
 
-    @PutMapping()
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('administrador')")
-    public ProcessDTO updateProcess(Authentication authentication, @RequestBody ProcessDTO process) {
+    public ProcessDTO updateProcess(Authentication authentication, @PathVariable Long id,
+            @RequestBody ProcessDTO process) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+
+        ProcessDTO existingProcess = processService.findProcess(id);
+        securityHelper.validateCompanyResourceAccess(authentication, existingProcess.getCompany().getId());
+
+        process.setId(id);
 
         securityHelper.validateCompanyAccess(authentication, process.getCompanyId());
 
