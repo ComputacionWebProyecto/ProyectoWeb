@@ -48,22 +48,34 @@ public class GatewayController {
         return gatewayService.createGateway(gatewayDTO);
     }
 
-    @PutMapping()
-    public GatewayDTO updateGateway(Authentication authentication, @RequestBody GatewayDTO gatewayDTO) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedAccessException("Usuario no autenticado");
-        }
-        GatewayDTO existing = gatewayService.findGateway(gatewayDTO.getId());
-        securityHelper.validateCompanyResourceAccess(
-                authentication,
-                existing.getProcess().getCompany().getId());
+    @PutMapping("/{id}")
+public GatewayDTO updateGateway(
+        Authentication authentication,
+        @PathVariable Long id,
+        @RequestBody GatewayDTO gatewayDTO) {
 
-        ProcessDTO newProcess = processService.findProcess(gatewayDTO.getProcessId());
-        securityHelper.validateCompanyResourceAccess(
-                authentication,
-                newProcess.getCompany().getId());
-        return gatewayService.updateGateway(gatewayDTO);
+    if (authentication == null || !authentication.isAuthenticated()) {
+        throw new UnauthorizedAccessException("Usuario no autenticado");
     }
+
+    GatewayDTO existing = gatewayService.findGateway(id);
+    securityHelper.validateCompanyResourceAccess(
+            authentication,
+            existing.getProcess().getCompanyId()
+    );
+
+    // Forzamos coherencia del id
+    gatewayDTO.setId(id);
+
+    ProcessDTO newProcess = processService.findProcess(gatewayDTO.getProcessId());
+    securityHelper.validateCompanyResourceAccess(
+            authentication,
+            newProcess.getCompany().getId()
+    );
+
+    return gatewayService.updateGateway(gatewayDTO);
+}
+
 
     @DeleteMapping(value = "/{id}")
     public void deleteGateway(Authentication authentication, @PathVariable Long id) {
