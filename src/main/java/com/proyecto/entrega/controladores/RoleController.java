@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.service.RoleService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -24,6 +26,7 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping()
+    @PreAuthorize("hasRole('administrador')")
     public RoleDTO createRole(Authentication authentication, @RequestBody RoleDTO role) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
@@ -32,6 +35,7 @@ public class RoleController {
     }
 
     @PutMapping()
+    @PreAuthorize("hasRole('administrador')")
     public RoleDTO updateRole(Authentication authentication, @RequestBody RoleDTO role) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
@@ -40,6 +44,7 @@ public class RoleController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('administrador')")
     public void deleteRole(Authentication authentication, @PathVariable Long id) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");

@@ -17,6 +17,8 @@ import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.service.UserService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -26,6 +28,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @PreAuthorize("hasRole('administrador')")
     @PostMapping()
     public UserDTO createUser(Authentication authentication, @RequestBody UserDTO user) {
         if (authentication == null || !authentication.isAuthenticated()) {

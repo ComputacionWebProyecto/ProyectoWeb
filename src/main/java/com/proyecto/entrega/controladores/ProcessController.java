@@ -17,6 +17,8 @@ import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.dto.ProcessSummaryDTO;
 import com.proyecto.entrega.service.ProcessService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -26,6 +28,7 @@ public class ProcessController {
     private ProcessService processService;
 
     @PostMapping()
+    @PreAuthorize("hasRole('administrador')")
     public ProcessDTO createProcess(Authentication authentication, @RequestBody ProcessDTO process) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
@@ -34,6 +37,7 @@ public class ProcessController {
     }
 
     @PutMapping()
+    @PreAuthorize("hasRole('administrador')")
     public ProcessDTO updateProcess(Authentication authentication, @RequestBody ProcessDTO process) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
@@ -42,6 +46,7 @@ public class ProcessController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('administrador')")
     public void deleteProcess(Authentication authentication, @PathVariable Long id) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
@@ -82,43 +87,4 @@ public class ProcessController {
         List<ProcessSummaryDTO> summaries = processService.getProcessesSummaryByCompany(companyId);
         return ResponseEntity.ok(summaries);
     }
-
-    /**
-     * Reactiva un proceso que fue marcado como inactivo mediante soft delete.
-     *
-     * Este endpoint permite recuperar procesos eliminados cambiando su estado
-     * de 'inactive' a 'active', haciéndolos visibles nuevamente en el sistema.
-     *
-     * Endpoint: PUT /api/process/{id}/reactivate
-     *
-     * @param id Identificador del proceso a reactivar
-     * @return ProcessDTO del proceso reactivado
-     */
-    @PutMapping(value = "/{id}/reactivate")
-    public ProcessDTO reactivateProcess(Authentication authentication, @PathVariable Long id) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedAccessException("Usuario no autenticado");
-        }
-        return processService.reactivateProcess(id);
-    }
-
-    /**
-     * Obtiene todos los procesos inactivos de una empresa.
-     *
-     * Este endpoint permite visualizar procesos eliminados mediante soft delete
-     * para decidir cuáles reactivar.
-     *
-     * Endpoint: GET /api/process/company/{companyId}/inactive
-     *
-     * @param companyId Identificador de la empresa
-     * @return Lista de procesos inactivos
-     */
-    @GetMapping(value = "/company/{companyId}/inactive")
-    public List<ProcessDTO> getInactiveProcessesByCompany(Authentication authentication, @PathVariable Long companyId) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedAccessException("Usuario no autenticado");
-        }
-        return processService.getInactiveProcessesByCompany(companyId);
-    }
-
 }
