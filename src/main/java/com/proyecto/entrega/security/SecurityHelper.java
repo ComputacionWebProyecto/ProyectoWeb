@@ -18,13 +18,8 @@ public class SecurityHelper {
     public SecurityHelper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
-
-    // =====================================
-    // EXTRACT USER (NUEVO MÉTODO CORREGIDO)
-    // =====================================
+    
     public UserSafeDTO extractUser(Authentication authentication) {
-
-        System.out.println("\n==== EXTRACT USER (JSON NODE) ====");
 
         try {
             if (authentication == null || authentication.getPrincipal() == null) {
@@ -32,9 +27,6 @@ public class SecurityHelper {
             }
 
             String jusuarioJson = authentication.getPrincipal().toString();
-
-            System.out.println("Principal JSON: " + jusuarioJson);
-            System.out.println("Authorities: " + authentication.getAuthorities());
 
             JsonNode jsonNode = objectMapper.readTree(jusuarioJson);
 
@@ -45,7 +37,6 @@ public class SecurityHelper {
                     ? jsonNode.get("status").asText()
                     : null;
 
-            // ============= COMPANY =============
             CompanyDTO company = null;
 
             if (jsonNode.has("company") && !jsonNode.get("company").isNull()) {
@@ -68,13 +59,7 @@ public class SecurityHelper {
                 if (companyNode.has("status") && !companyNode.get("status").isNull()) {
                     company.setStatus(companyNode.get("status").asText());
                 }
-
-                System.out.println("Company cargada: " + company.getId() + " - " + company.getName());
-            } else {
-                System.out.println("⚠️ company viene NULL en el token");
             }
-
-            // ============= ROLE =============
             RoleDTO roleObj = null;
 
             if (jsonNode.has("role") && !jsonNode.get("role").isNull()) {
@@ -97,13 +82,8 @@ public class SecurityHelper {
                 if (roleNode.has("companyId")) {
                     roleObj.setCompanyId(roleNode.get("companyId").asLong());
                 }
+            } 
 
-                System.out.println("Role cargado: " + roleObj.getNombre());
-            } else {
-                System.out.println("⚠️ role viene NULL en el token");
-            }
-
-            // ============= BUILD USER =============
             UserSafeDTO user = new UserSafeDTO();
             user.setId(userId);
             user.setNombre(nombre);
@@ -112,9 +92,6 @@ public class SecurityHelper {
             user.setCompany(company);
             user.setRole(roleObj);
 
-            System.out.println("Usuario final: " + user.getId() + " - " + user.getCorreo());
-            System.out.println("=================================\n");
-
             return user;
 
         } catch (Exception e) {
@@ -122,8 +99,6 @@ public class SecurityHelper {
             throw new UnauthorizedAccessException("Error al procesar usuario");
         }
     }
-
-    // =====================================
     public Long getUserCompanyId(Authentication authentication) {
 
         UserSafeDTO user = extractUser(authentication);
@@ -135,12 +110,12 @@ public class SecurityHelper {
         return user.getCompany().getId();
     }
 
-    // =====================================
+    
     public Long getUserId(Authentication authentication) {
         return extractUser(authentication).getId();
     }
 
-    // =====================================
+    
     public String getUserRole(Authentication authentication) {
 
         UserSafeDTO user = extractUser(authentication);
@@ -152,7 +127,7 @@ public class SecurityHelper {
         return user.getRole().getNombre();
     }
 
-    // =====================================
+    
     public void validateCompanyAccess(Authentication authentication, Long companyId) {
 
         if (companyId == null)
@@ -166,7 +141,7 @@ public class SecurityHelper {
         }
     }
 
-    // =====================================
+    
     public void validateAdminRole(Authentication authentication) {
 
         String role = getUserRole(authentication);
@@ -177,7 +152,7 @@ public class SecurityHelper {
         }
     }
 
-    // =====================================
+    
     public void validateUserAccess(Authentication authentication, Long userId) {
 
         if (userId == null)
@@ -191,7 +166,7 @@ public class SecurityHelper {
         }
     }
 
-    // =====================================
+    
     public void validateCompanyResourceAccess(Authentication authentication, Long resourceCompanyId) {
 
         if (resourceCompanyId == null)

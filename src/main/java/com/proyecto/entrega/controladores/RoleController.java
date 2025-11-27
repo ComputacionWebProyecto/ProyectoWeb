@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.proyecto.entrega.dto.RoleDTO;
 import com.proyecto.entrega.service.RoleService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import com.proyecto.entrega.security.SecurityHelper;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -25,12 +26,17 @@ public class RoleController {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private SecurityHelper securityHelper;
+
     @PostMapping()
     @PreAuthorize("hasRole('administrador')")
     public RoleDTO createRole(Authentication authentication, @RequestBody RoleDTO role) {
+
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        securityHelper.validateCompanyAccess(authentication, role.getCompanyId());
         return roleService.createRole(role);
     }
 
@@ -40,6 +46,12 @@ public class RoleController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        RoleDTO existing = roleService.findRole(role.getId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                existing.getCompany().getId());
+
+        securityHelper.validateCompanyAccess(authentication, role.getCompanyId());
         return roleService.updateRole(role);
     }
 
@@ -49,6 +61,11 @@ public class RoleController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        RoleDTO role = roleService.findRole(id);
+        securityHelper.validateCompanyAccess(
+                authentication,
+                role.getCompany().getId());
+
         roleService.deleteRole(id);
     }
 
@@ -57,6 +74,11 @@ public class RoleController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        RoleDTO role = roleService.findRole(id);
+
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                role.getCompany().getId());
         return roleService.findRole(id);
     }
 
@@ -73,6 +95,7 @@ public class RoleController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        securityHelper.validateCompanyAccess(authentication, id);
         return roleService.getUsersByCompany(id);
     }
 

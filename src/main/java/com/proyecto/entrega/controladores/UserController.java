@@ -17,6 +17,7 @@ import com.proyecto.entrega.dto.UserDTO;
 import com.proyecto.entrega.dto.UserSafeDTO;
 import com.proyecto.entrega.service.UserService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import com.proyecto.entrega.security.SecurityHelper;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,12 +29,16 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private SecurityHelper securityHelper;
+
     @PreAuthorize("hasRole('administrador')")
     @PostMapping()
     public UserDTO createUser(Authentication authentication, @RequestBody UserDTO user) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        securityHelper.validateCompanyAccess(authentication, user.getCompanyId());
         return userService.createUser(user);
     }
 
@@ -43,6 +48,12 @@ public class UserController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        UserSafeDTO existing = userService.findUser(user.getId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                existing.getCompany().getId());
+
+        securityHelper.validateCompanyAccess(authentication, user.getCompanyId());
         return userService.updateUser(user);
     }
 
@@ -60,6 +71,11 @@ public class UserController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        UserSafeDTO user = userService.findUser(id);
+        securityHelper.validateCompanyAccess(
+                authentication,
+                user.getCompany().getId());
+
         return userService.findUser(id);
     }
 
@@ -71,13 +87,14 @@ public class UserController {
         return userService.findAllUsers();
     }
 
-    
     @GetMapping(value = "/company/{id}/currentUser")
     public List<UserSafeDTO> getUsersByCompany(Authentication authentication, @PathVariable Long id,
             @RequestParam Long currentUserId) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        securityHelper.validateCompanyAccess(authentication, id);
+        
         return userService.getUsersByCompany(id, currentUserId);
     }
 

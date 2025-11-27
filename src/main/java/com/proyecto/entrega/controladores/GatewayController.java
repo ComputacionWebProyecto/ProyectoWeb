@@ -13,8 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.entrega.dto.GatewayDTO;
+import com.proyecto.entrega.dto.ProcessDTO;
 import com.proyecto.entrega.service.GatewayService;
+import com.proyecto.entrega.service.ProcessService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
+import com.proyecto.entrega.security.SecurityHelper;
+
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -24,11 +28,23 @@ public class GatewayController {
     @Autowired
     private GatewayService gatewayService;
 
+    @Autowired
+    private ProcessService processService;
+
+    @Autowired
+    private SecurityHelper securityHelper;
+
     @PostMapping()
     public GatewayDTO createGateway(Authentication authentication, @RequestBody GatewayDTO gatewayDTO) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+
+        ProcessDTO process = processService.findProcess(gatewayDTO.getProcessId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                process.getCompany().getId());
+
         return gatewayService.createGateway(gatewayDTO);
     }
 
@@ -37,6 +53,15 @@ public class GatewayController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        GatewayDTO existing = gatewayService.findGateway(gatewayDTO.getId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                existing.getProcess().getCompany().getId());
+
+        ProcessDTO newProcess = processService.findProcess(gatewayDTO.getProcessId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                newProcess.getCompany().getId());
         return gatewayService.updateGateway(gatewayDTO);
     }
 
@@ -45,6 +70,11 @@ public class GatewayController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        GatewayDTO gateway = gatewayService.findGateway(id);
+        securityHelper.validateCompanyAccess(
+                authentication,
+                gateway.getProcess().getCompanyId());
+
         gatewayService.deleteGateway(id);
     }
 
@@ -53,6 +83,11 @@ public class GatewayController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        GatewayDTO gateway = gatewayService.findGateway(id);
+
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                gateway.getProcess().getCompanyId());
         return gatewayService.findGateway(id);
     }
 
@@ -81,6 +116,10 @@ public class GatewayController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        
+        ProcessDTO process = processService.findProcess(processId);
+        securityHelper.validateCompanyAccess(authentication, process.getCompanyId());
+
         return gatewayService.findGatewaysByProcess(processId);
     }
 

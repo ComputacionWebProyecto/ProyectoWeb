@@ -12,9 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.proyecto.entrega.dto.ActivityDTO;
 import com.proyecto.entrega.dto.EdgeDTO;
+import com.proyecto.entrega.dto.GatewayDTO;
 import com.proyecto.entrega.dto.ProcessDTO;
+import com.proyecto.entrega.service.ActivityService;
 import com.proyecto.entrega.service.EdgeService;
+import com.proyecto.entrega.service.GatewayService;
+import com.proyecto.entrega.service.ProcessService;
 import com.proyecto.entrega.exception.UnauthorizedAccessException;
 import com.proyecto.entrega.security.SecurityHelper;
 
@@ -36,16 +41,73 @@ public class EdgeController {
     @Autowired
     private SecurityHelper securityHelper;
 
+    @Autowired
+    private ProcessService processService;
+
+    @Autowired
+    private ActivityService activityService;
+
+    @Autowired
+    private GatewayService gatewayService;
+
+    private void validateNodeAccess(Authentication authentication, EdgeDTO edge, Long userCompanyId) {
+        // Verificar formato tipado (nuevo)
+        if (edge.getFromType() != null && edge.getToType() != null) {
+            validateTypedNode(edge.getFromType(), edge.getFromId(), userCompanyId, "origen");
+            validateTypedNode(edge.getToType(), edge.getToId(), userCompanyId, "destino");
+        }
+        // Verificar formato legacy (activity -> activity)
+        else if (edge.getActivitySourceId() != null && edge.getActivityDestinyId() != null) {
+            validateActivityNode(edge.getActivitySourceId(), userCompanyId, "origen");
+            validateActivityNode(edge.getActivityDestinyId(), userCompanyId, "destino");
+        }
+    }
+
+    private void validateTypedNode(String nodeType, Long nodeId, Long userCompanyId, String position) {
+        if (nodeId == null) {
+            return; // Si no hay ID, el servicio manejará el error
+        }
+
+        if ("activity".equals(nodeType)) {
+            validateActivityNode(nodeId, userCompanyId, position);
+        } else if ("gateway".equals(nodeType)) {
+            validateGatewayNode(nodeId, userCompanyId, position);
+        }
+    }
+
+    private void validateActivityNode(Long activityId, Long userCompanyId, String position) {
+        ActivityDTO activity = activityService.findActivity(activityId);
+        if (!activity.getProcess().getCompany().getId().equals(userCompanyId)) {
+            throw new UnauthorizedAccessException(
+                    "No tienes acceso a la actividad de " + position + " (ID: " + activityId + ")");
+        }
+    }
+
+    private void validateGatewayNode(Long gatewayId, Long userCompanyId, String position) {
+        GatewayDTO gateway = gatewayService.findGateway(gatewayId);
+        if (!gateway.getProcess().getCompany().getId().equals(userCompanyId)) {
+            throw new UnauthorizedAccessException(
+                    "No tienes acceso al gateway de " + position + " (ID: " + gatewayId + ")");
+        }
+    }
+
     @PostMapping()
     public EdgeDTO createEdge(Authentication authentication, @RequestBody EdgeDTO edgeDTO) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
-        EdgeDTO edge = edgeService.findEdge(edgeDTO.getId());
-        securityHelper.validateCompanyResourceAccess(
-                authentication,
-                edge.getProcess().getCompanyId());
-                
+
+        // Obtener el proceso y validar acceso a la compañía
+        ProcessDTO process = processService.findProcess(edgeDTO.getProcessId());
+        Long userCompanyId = securityHelper.getUserCompanyId(authentication);
+
+        if (!process.getCompany().getId().equals(userCompanyId)) {
+            throw new UnauthorizedAccessException("No tienes acceso a este proceso");
+        }
+
+        // Validar acceso a los nodos conectados (source y destiny)
+        validateNodeAccess(authentication, edgeDTO, userCompanyId);
+
         return edgeService.createEdge(edgeDTO);
     }
 
@@ -54,6 +116,18 @@ public class EdgeController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        // Validar acceso al edge existente
+        EdgeDTO existing = edgeService.findEdge(edgeDTO.getId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                existing.getProcess().getCompany().getId());
+
+        // Validar acceso al nuevo proceso (si cambió)
+        ProcessDTO newProcess = processService.findProcess(edgeDTO.getProcessId());
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                newProcess.getCompany().getId());
+
         return edgeService.updateEdge(edgeDTO);
     }
 
@@ -62,6 +136,11 @@ public class EdgeController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        EdgeDTO edge = edgeService.findEdge(id);
+        securityHelper.validateCompanyAccess(
+                authentication,
+                edge.getProcess().getCompanyId());
+
         edgeService.deleteEdge(id);
     }
 
@@ -70,6 +149,11 @@ public class EdgeController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        EdgeDTO edge = edgeService.findEdge(id);
+
+        securityHelper.validateCompanyResourceAccess(
+                authentication,
+                edge.getProcess().getCompanyId());
         return edgeService.findEdge(id);
     }
 
@@ -98,6 +182,9 @@ public class EdgeController {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("Usuario no autenticado");
         }
+        ProcessDTO process = processService.findProcess(processId);
+        securityHelper.validateCompanyAccess(authentication, process.getCompanyId());
+
         return edgeService.findEdgesByProcess(processId);
     }
 
